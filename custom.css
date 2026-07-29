@@ -1,0 +1,13 @@
+/* Enlarge the brand logo while keeping the topbar responsive. */
+.nav-logo {
+  width: auto !important;
+  height: 44px !important;
+  max-height: 44px !important;
+}
+
+@media (max-width: 767px) {
+  .nav-logo {
+    height: 36px !important;
+    max-height: 36px !important;
+  }
+}
