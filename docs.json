@@ -1,53 +1,67 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "Mintlify Starter Kit",
+  "name": "日本語文章解析",
+  "description": "面向中文学习者的日语句子解析工具文档。",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#DC2626",
+    "light": "#EF4444",
+    "dark": "#B91C1C"
   },
   "favicon": "/favicon.svg",
   "navigation": {
     "pages": [
       {
-        "group": "Getting Started",
+        "group": "开始使用",
         "pages": [
           "index",
           "quickstart"
+        ]
+      },
+      {
+        "group": "配置与部署",
+        "pages": [
+          "configuration",
+          "deployment"
+        ]
+      },
+      {
+        "group": "开发指南",
+        "pages": [
+          "development"
         ]
       }
     ],
     "global": {
       "anchors": [
         {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
+          "anchor": "在线体验",
+          "href": "https://nihongodemo.howen.ink/",
+          "icon": "arrow-up-right-from-square"
         },
         {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
+          "anchor": "GitHub",
+          "href": "https://github.com/cokice/japanese-analyzer",
+          "icon": "github"
         }
       ]
     }
   },
   "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
+    "light": "https://raw.githubusercontent.com/cokice/japanese-analyzer/master/public/logo/logo-text.png",
+    "dark": "https://raw.githubusercontent.com/cokice/japanese-analyzer/master/public/logo/logo-text.png"
   },
   "navbar": {
     "links": [
       {
-        "label": "Support",
-        "href": "mailto:hi@mintlify.com"
+        "label": "GitHub",
+        "href": "https://github.com/cokice/japanese-analyzer"
       }
     ],
     "primary": {
       "type": "button",
-      "label": "Dashboard",
-      "href": "https://app.mintlify.com"
+      "label": "打开应用",
+      "href": "https://nihongodemo.howen.ink/"
     }
   },
   "contextual": {
@@ -64,9 +78,7 @@
   },
   "footer": {
     "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
+      "github": "https://github.com/cokice/japanese-analyzer"
     }
   }
 }

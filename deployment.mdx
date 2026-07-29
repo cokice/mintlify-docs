@@ -1,0 +1,174 @@
+---
+title: "部署指南"
+description: "使用 Vercel、Docker Compose 或 Docker 部署日本語文章解析。"
+icon: "server"
+---
+
+你可以把应用部署到 Vercel，也可以使用 Docker 在 VPS 上运行。Docker Hub 镜像同时支持 `linux/amd64` 和 `linux/arm64`。
+
+## 部署到 Vercel
+
+<Steps>
+  <Step title="导入仓库">
+    Fork 仓库，或在 Vercel 中导入 `cokice/japanese-analyzer`。
+  </Step>
+
+  <Step title="配置环境变量">
+    在项目中打开 **Settings** → **Environment Variables**。
+
+    至少添加 `DEEPSEEK_API_KEY`。如果需要图片识别或 Gemini TTS，再添加 `GEMINI_API_KEY`。
+  </Step>
+
+  <Step title="添加可选配置">
+    如需访问密码，添加 `CODE`。如需 Umami，同时添加 `NEXT_PUBLIC_UMAMI_SRC` 和 `NEXT_PUBLIC_UMAMI_WEBSITE_ID`。
+  </Step>
+
+  <Step title="重新部署">
+    触发一次新部署，然后打开 Vercel 提供的访问地址。
+  </Step>
+</Steps>
+
+<Card title="在 Vercel 中部署" icon="triangle" href="https://vercel.com/new/clone?repository-url=https://github.com/cokice/japanese-analyzer">
+  从 GitHub 仓库创建一个新的 Vercel 项目。
+</Card>
+
+## 使用 Docker Compose
+
+Docker Compose 更适合长期维护的 VPS 部署。
+
+<Steps>
+  <Step title="准备配置">
+    从仓库中的模板创建生产环境变量文件。
+
+    ```bash
+    cp .env.production.example .env.production
+    ```
+
+    编辑 `.env.production` 并填写需要的 API Key。
+  </Step>
+
+  <Step title="启动服务">
+    ```bash
+    docker compose -f docker-compose.hub.yml up -d
+    ```
+  </Step>
+
+  <Step title="检查状态">
+    ```bash
+    docker compose -f docker-compose.hub.yml ps
+    docker compose -f docker-compose.hub.yml logs -f
+    ```
+  </Step>
+</Steps>
+
+应用默认监听宿主机的 `3002` 端口。打开：
+
+```text
+http://your-vps-ip:3002
+```
+
+## 使用 Docker 运行
+
+先拉取多架构镜像：
+
+```bash
+docker pull howenhowen/japanese-analyzer:latest
+```
+
+启动容器：
+
+```bash
+docker run -d \
+  --name japanese-analyzer \
+  --restart unless-stopped \
+  -p 3002:3002 \
+  -e DEEPSEEK_API_KEY="your_deepseek_api_key" \
+  -e GEMINI_API_KEY="your_gemini_api_key" \
+  -e CODE="" \
+  howenhowen/japanese-analyzer:latest
+```
+
+如果只使用 DeepSeek 文本解析，可以省略 `GEMINI_API_KEY`。如果不需要访问密码，保持 `CODE=""`。
+
+如需启用 Umami，额外添加：
+
+```bash
+-e NEXT_PUBLIC_UMAMI_SRC="https://cloud.umami.is/script.js" \
+-e NEXT_PUBLIC_UMAMI_WEBSITE_ID="your_umami_website_id" \
+```
+
+查看日志：
+
+```bash
+docker logs -f japanese-analyzer
+```
+
+## 更新部署
+
+使用 Docker Compose 时：
+
+```bash
+docker compose -f docker-compose.hub.yml pull
+docker compose -f docker-compose.hub.yml up -d
+```
+
+直接运行容器时，先拉取新镜像，再重建容器：
+
+```bash
+docker pull howenhowen/japanese-analyzer:latest
+docker rm -f japanese-analyzer
+docker run -d \
+  --name japanese-analyzer \
+  --restart unless-stopped \
+  -p 3002:3002 \
+  -e DEEPSEEK_API_KEY="your_deepseek_api_key" \
+  -e GEMINI_API_KEY="your_gemini_api_key" \
+  -e CODE="" \
+  howenhowen/japanese-analyzer:latest
+```
+
+<Warning>
+  `docker rm -f japanese-analyzer` 会强制删除现有容器。确认容器名称和运行参数后再执行。API Key 应通过环境变量注入，不要写入镜像。
+</Warning>
+
+## 配置域名与 HTTPS
+
+容器运行正常后，你可以为它添加反向代理：
+
+1. 将域名 A 记录指向 VPS。
+2. 确认防火墙和云安全组已开放 `80` 与 `443` 端口。
+3. 检查服务器上是否已有 Nginx 或 Caddy，并优先复用现有服务。
+4. 将请求反向代理到 `127.0.0.1:3002`。
+5. 配置 HTTPS，并把 HTTP 重定向到 HTTPS。
+6. 使用 `curl -I https://你的域名` 检查证书和反向代理。
+
+<Tip>
+  如果服务器没有反向代理，Caddy 可以自动申请和续期 Let's Encrypt 证书。
+</Tip>
+
+## 验收部署
+
+- 容器状态正常，日志中没有启动错误。
+- `curl http://127.0.0.1:3002` 能返回页面。
+- 服务器重启后，容器会自动启动。
+- 如果配置了域名，HTTPS 访问正常且证书有效。
+
+<Accordion title="交给 AI Agent 部署">
+  你可以把下面的提示词交给 Claude Code 或 Codex，并在执行时提供 API Key：
+
+  ```text
+  请在这台 VPS 上使用 Docker Compose 部署 japanese-analyzer。
+
+  - 镜像：howenhowen/japanese-analyzer:latest
+  - 容器与宿主机端口：3002
+  - 重启策略：unless-stopped
+  - DEEPSEEK_API_KEY：必填
+  - GEMINI_API_KEY：可选
+  - CODE：可选
+
+  请先检查 3002 端口是否可用。不要终止现有进程。
+  API Key 只通过环境变量注入，不要输出到日志或写入镜像。
+  容器启动后，请检查日志，并用 curl 验证本机访问。
+  如需配置域名和 HTTPS，请先询问我，并优先复用现有的 Nginx 或 Caddy。
+  ```
+</Accordion>

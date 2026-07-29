@@ -1,20 +1,54 @@
 ---
-title: "Introduction"
-description: "Welcome to your project"
+title: "日本語文章解析"
+description: "输入日语句子，查看分词、读音、词性、翻译和上下文解释。"
+icon: "language"
 ---
 
-Write a short description of your product here. What it does, who it's for, and what they can accomplish with it.
+日本語文章解析是一款面向中文学习者的日语句子解析工具。你可以输入文本或上传图片，快速查看词汇拆解、假名、罗马音、词性、整句翻译和单词详解。
 
-<Tip>
-  Ready to make this your own? Start by editing this page. Update your `docs.json` file to customize your site. Then fill out the [Quickstart](/quickstart) page.
-</Tip>
+<Info>
+  想先体验功能？打开[在线演示](https://nihongodemo.howen.ink/)，无需部署即可开始解析。
+</Info>
 
-<Card title="Quickstart" icon="rocket" href="/quickstart">
-  This card links to the quickstart page in your project.
-</Card>
-<Card title="Components" icon="puzzle-piece" href="https://mintlify.com/docs/components">
-  Add cards, callouts, steps, tabs, and more to design and structure your pages.
-</Card>
-<Card title="Settings" icon="gear" href="https://mintlify.com/docs/organize/settings">
-  Set your site name, branding, and navigation in the `docs.json` file.
-</Card>
+![日本語文章解析主界面](https://raw.githubusercontent.com/cokice/japanese-analyzer/master/docs/images/app-home.png)
+
+## 你可以做什么
+
+| 功能 | 说明 |
+| --- | --- |
+| 句子解析 | 查看分词、假名、罗马音、词性标记和中文释义。 |
+| 单词详解 | 点击词汇，查看读音、释义、语法角色和上下文解释。 |
+| 整句翻译 | 生成中文翻译，快速理解句子语境。 |
+| 图片识别 | 上传或粘贴图片，从图片中提取日语文本。此功能需要 Gemini。 |
+| 语音朗读 | 使用 Edge TTS 或 Gemini TTS 朗读句子。 |
+| AI 日语助手 | 围绕当前句子继续询问语法、词汇和文化背景。 |
+
+## 模型与服务
+
+| 能力 | 默认模型或服务 | 说明 |
+| --- | --- | --- |
+| 文本解析 | `deepseek-v4-flash` / `deepseek-v4-pro` | 默认使用 DeepSeek。你可以在设置中切换 Flash 或 Pro。 |
+| Gemini 文本解析 | `gemini-3.6-flash` / `gemini-3.5-flash-lite` | 你可以在设置中切换 Gemini 模型。 |
+| 图片识别 | Gemini | DeepSeek 暂不支持图片识别。 |
+| 语音朗读 | Edge TTS / Gemini TTS | 默认使用 Edge TTS。Gemini TTS 需要 Gemini API Key。 |
+
+<Note>
+  你可以使用服务器预设的 API Key，也可以在右上角的设置中填写自己的 Key。浏览器设置只保存在本地。
+</Note>
+
+## 下一步
+
+<Columns cols={2}>
+  <Card title="快速开始" icon="rocket" href="/quickstart">
+    在本地安装依赖并运行应用。
+  </Card>
+  <Card title="配置模型" icon="sliders-horizontal" href="/configuration">
+    配置 DeepSeek、Gemini、访问密码和 Umami。
+  </Card>
+  <Card title="部署应用" icon="server" href="/deployment">
+    使用 Vercel、Docker Compose 或 Docker 运行应用。
+  </Card>
+  <Card title="参与开发" icon="code" href="/development">
+    了解常用命令、项目结构和自动构建流程。
+  </Card>
+</Columns>

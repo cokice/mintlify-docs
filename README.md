@@ -1,55 +1,34 @@
-# Mintlify Starter Kit
+# 日本語文章解析文档
 
-Use the starter kit to get your docs deployed and ready to customize.
+这是 [japanese-analyzer](https://github.com/cokice/japanese-analyzer) 的 Mintlify 文档站源码。
 
-Click the green **Use this template** button at the top of this repo to copy the Mintlify starter kit. The starter kit contains examples with
+文档包括：
 
-- Guide pages
-- Navigation
-- Customizations
-- API reference pages
-- Use of popular components
+- 产品功能与模型说明
+- 本地快速开始
+- 环境变量与隐私配置
+- Vercel、Docker Compose 和 Docker 部署
+- 开发命令、项目结构与镜像发布
 
-**[Follow the full quickstart guide](https://starter.mintlify.com/quickstart)**
+## 本地预览
 
-## AI-assisted writing
-
-Set up your AI coding tool to work with Mintlify:
+安装 Mintlify CLI：
 
 ```bash
-npx skills add https://mintlify.com/docs
-```
-
-This command installs Mintlify's documentation skill for your configured AI tools like Claude Code, Cursor, Windsurf, and others. The skill includes component reference, writing standards, and workflow guidance.
-
-See the [AI tools guides](/ai-tools) for tool-specific setup.
-
-## Development
-
-Install the [Mintlify CLI](https://www.npmjs.com/package/mint) to preview your documentation changes locally. To install, use the following command:
-
-```
 npm i -g mint
 ```
 
-Run the following command at the root of your documentation, where your `docs.json` is located:
+在仓库根目录启动预览：
 
-```
+```bash
 mint dev
 ```
 
-View your local preview at `http://localhost:3000`.
+然后打开 `http://localhost:3000`。
 
-## Publishing changes
+## 验证
 
-Install our GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app) to propagate changes from your repo to your deployment. Changes are deployed to production automatically after pushing to the default branch.
-
-## Need help?
-
-### Troubleshooting
-
-- If your dev environment isn't running: Run `mint update` to ensure you have the most recent version of the CLI.
-- If a page loads as a 404: Make sure you are running in a folder with a valid `docs.json`.
-
-### Resources
-- [Mintlify documentation](https://mintlify.com/docs)
+```bash
+mint validate
+mint broken-links
+```

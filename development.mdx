@@ -1,0 +1,84 @@
+---
+title: "开发指南"
+description: "了解开发命令、项目结构、持续集成和 Docker 镜像发布规则。"
+icon: "code"
+---
+
+项目基于 Next.js 和 React。开始开发前，请先按照[快速开始](/quickstart)完成本地配置。
+
+## 常用命令
+
+```bash
+npm run dev      # 启动本地开发服务器
+npm test         # 运行 API 和 provider 配置测试
+npm run lint     # 检查代码质量
+npm run build    # 创建生产构建
+```
+
+发布改动前，建议依次运行测试、代码检查和生产构建。
+
+## 项目结构
+
+```text
+app/
+  api/                 # Next.js API routes
+  api/_utils/          # provider 配置与 OpenAI 兼容代理
+  components/          # 输入区、解析结果、设置弹窗和 AI 助手
+  hooks/               # 单词详情和交互逻辑
+  services/            # 前端 API 调用与本地设置迁移
+docs/images/           # README 截图
+tests/                 # 轻量测试
+```
+
+## GitHub Actions
+
+仓库中的 `.github/workflows/docker.yml` 会在 push 或 pull request 时执行：
+
+1. `npm ci`
+2. `npm test`
+3. `npm run lint`
+4. `npm run build`
+5. Docker image build
+
+推送到 `howendev/dev`、默认分支或 `v*` tag 时，工作流会在配置 Docker Hub secrets 后构建并推送多架构镜像。
+
+| 架构 | 构建环境 |
+| --- | --- |
+| `linux/amd64` | `ubuntu-latest` |
+| `linux/arm64` | `ubuntu-24.04-arm` |
+
+## 镜像标签
+
+分支发布会生成：
+
+```text
+howenhowen/japanese-analyzer:latest
+howenhowen/japanese-analyzer:<branch>
+howenhowen/japanese-analyzer:sha-<commit>
+```
+
+版本 tag 发布会生成：
+
+```text
+howenhowen/japanese-analyzer:<tag>
+howenhowen/japanese-analyzer:sha-<commit>
+```
+
+## Docker Hub secrets
+
+在 GitHub 仓库中打开 **Settings** → **Secrets and variables** → **Actions**，添加：
+
+| Secret | 说明 |
+| --- | --- |
+| `DOCKERHUB_USERNAME` | Docker Hub 用户名，例如 `howenhowen`。 |
+| `DOCKERHUB_TOKEN` | Docker Hub Personal Access Token。不要使用账号密码。 |
+
+<Warning>
+  运行时密钥不要写入 Docker 镜像。VPS 应继续通过 `.env.production` 注入 `DEEPSEEK_API_KEY`、`GEMINI_API_KEY`、`CODE` 和 Umami 配置。
+</Warning>
+
+## 相关链接
+
+- [GitHub 仓库](https://github.com/cokice/japanese-analyzer)
+- [在线演示](https://nihongodemo.howen.ink/)
+- [MIT License](https://github.com/cokice/japanese-analyzer/blob/master/LICENSE)

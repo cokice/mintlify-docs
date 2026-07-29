@@ -1,0 +1,90 @@
+---
+title: "配置说明"
+description: "配置模型服务、访问密码、浏览器设置和 Umami 统计。"
+icon: "sliders-horizontal"
+---
+
+应用支持 DeepSeek 和 Gemini。你可以通过服务器环境变量提供默认配置，也可以让每位使用者在浏览器中填写自己的 API Key。
+
+## 模型选择
+
+| 能力 | 模型或服务 | 配置要求 |
+| --- | --- | --- |
+| DeepSeek 文本解析 | `deepseek-v4-flash` / `deepseek-v4-pro` | 需要 `DEEPSEEK_API_KEY`。默认关闭思考模式。 |
+| Gemini 文本解析 | `gemini-3.6-flash` / `gemini-3.5-flash-lite` | 需要 `GEMINI_API_KEY`。请求使用最低推理档。 |
+| 图片识别 | Gemini | 需要 `GEMINI_API_KEY`。DeepSeek 模式下会关闭图片上传和粘贴识别。 |
+| Edge TTS | Edge TTS | 默认朗读服务，无需 Gemini API Key。 |
+| Gemini TTS | Gemini TTS | 需要 `GEMINI_API_KEY`。 |
+
+<Info>
+  默认文本服务商是 DeepSeek。你可以在应用右上角的设置中切换服务商和模型。
+</Info>
+
+## 环境变量
+
+| 变量 | 是否必填 | 用途 |
+| --- | --- | --- |
+| `DEEPSEEK_API_KEY` | 推荐 | DeepSeek API Key。用于默认文本解析。 |
+| `DEEPSEEK_API_URL` | 可选 | DeepSeek OpenAI 兼容接口地址。留空时使用官方默认地址。 |
+| `GEMINI_API_KEY` | 可选 | Gemini API Key。用于 Gemini 文本解析、图片识别和 Gemini TTS。 |
+| `GEMINI_API_URL` | 可选 | Gemini OpenAI 兼容接口地址。留空时使用官方默认地址。 |
+| `CODE` | 可选 | 访问密码。设置后，使用者需要先输入密码。 |
+| `NEXT_PUBLIC_UMAMI_SRC` | 可选 | Umami 脚本地址，例如 `https://cloud.umami.is/script.js`。 |
+| `NEXT_PUBLIC_UMAMI_WEBSITE_ID` | 可选 | Umami Website ID。需要与 `NEXT_PUBLIC_UMAMI_SRC` 同时配置。 |
+
+下面是一份可用于本地开发的配置示例：
+
+```env
+DEEPSEEK_API_KEY=your_deepseek_api_key
+DEEPSEEK_API_URL=https://api.deepseek.com/chat/completions
+
+GEMINI_API_KEY=your_gemini_api_key
+GEMINI_API_URL=https://generativelanguage.googleapis.com/v1beta/openai/chat/completions
+
+CODE=
+NEXT_PUBLIC_UMAMI_SRC=
+NEXT_PUBLIC_UMAMI_WEBSITE_ID=
+```
+
+## 服务器配置与浏览器配置
+
+### 服务器默认 Key
+
+`DEEPSEEK_API_KEY` 和 `GEMINI_API_KEY` 作为服务器端默认密钥使用，不会发送到前端。适合你为所有使用者提供统一的模型服务。
+
+### 使用者自己的 Key
+
+使用者可以在右上角的设置中分别填写 Gemini 和 DeepSeek API Key。应用只把这些设置保存在当前浏览器中。
+
+<Warning>
+  不要提交 `.env.local` 或 `.env.production`。也不要把 API Key 写入镜像、前端代码或日志。
+</Warning>
+
+## 访问密码
+
+设置 `CODE` 后，应用会显示访问密码页面。留空时不启用访问控制。
+
+```env
+CODE=choose-a-private-password
+```
+
+该配置适合简单的私有部署。它不能替代完整的身份验证或权限系统。
+
+## Umami 统计
+
+同时配置以下两个变量后，应用会加载 Umami：
+
+```env
+NEXT_PUBLIC_UMAMI_SRC=https://cloud.umami.is/script.js
+NEXT_PUBLIC_UMAMI_WEBSITE_ID=your_umami_website_id
+```
+
+如果两个变量都为空，应用不会加载 Umami。
+
+启用后，应用只记录功能和模型相关元数据，例如模型服务商、模型名称、是否使用图片识别或 TTS。事件不包含：
+
+- 输入文本或图片内容
+- 图片提取结果
+- 词汇和翻译结果
+- 错误内容
+- API Key

@@ -1,47 +1,82 @@
 ---
-title: "Quickstart"
-description: "Begin with a guide on the fastest path to a successful outcome"
+title: "快速开始"
+description: "在本地安装、配置并运行日本語文章解析。"
+icon: "rocket"
 ---
 
-Describe how someone begins using your product. What is the first thing they need to do? Are there any prerequisites?
+本指南将带你从源码启动应用。完成后，你可以在浏览器中输入日语句子并查看解析结果。
 
-A quickstart should take someone from zero to using your product. They'll get a quick win and a sense of what they can accomplish.
+## 准备工作
 
-## Prerequisites
+开始前，请准备：
 
-Before you begin, you must have:
+- Node.js 和 npm
+- 一个 DeepSeek API Key，或一个 Gemini API Key
+- Git
 
-- Requirement one (for example, Node.js 18+, a free account, an API key)
-- Requirement two (for example, a compatible device, a compatible browser, a compatible operating system)
+<Tip>
+  如果你只想先体验文本解析，建议配置 DeepSeek。图片识别和 Gemini TTS 需要 Gemini API Key。
+</Tip>
 
-## Get started
+## 启动应用
 
 <Steps>
-  <Step title="Install">
-    Describe how to install your product or sign up.
-
+  <Step title="克隆仓库">
     ```bash
-    npm install your-package
+    git clone https://github.com/cokice/japanese-analyzer.git
+    cd japanese-analyzer
     ```
   </Step>
-  <Step title="Configure">
-    Describe any setup or configuration needed before first use.
 
+  <Step title="安装依赖">
     ```bash
-    your-cli init
+    npm install
     ```
   </Step>
-  <Step title="Run it">
-    Show the first thing a user does to see it working.
 
-    ```bash
-    your-cli start
+  <Step title="创建环境变量文件">
+    <CodeGroup>
+      ```powershell Windows PowerShell
+      Copy-Item .env.example .env.local
+      ```
+
+      ```bash macOS / Linux
+      cp .env.example .env.local
+      ```
+    </CodeGroup>
+  </Step>
+
+  <Step title="配置模型">
+    打开 `.env.local`。至少填写一个模型服务商的 API Key。
+
+    ```env
+    DEEPSEEK_API_KEY=your_deepseek_api_key
+    DEEPSEEK_API_URL=https://api.deepseek.com/chat/completions
+
+    GEMINI_API_KEY=your_gemini_api_key
+    GEMINI_API_URL=https://generativelanguage.googleapis.com/v1beta/openai/chat/completions
+
+    CODE=
+    NEXT_PUBLIC_UMAMI_SRC=
+    NEXT_PUBLIC_UMAMI_WEBSITE_ID=
     ```
+  </Step>
+
+  <Step title="启动开发服务器">
+    ```bash
+    npm run dev
+    ```
+
+    打开 [http://127.0.0.1:3000](http://127.0.0.1:3000)。
   </Step>
 </Steps>
 
-<Tip>
-  Give people a way to get help. This could be a link to a support page, a chat with a customer support agent, or a forum for your product.
+<Check>
+  页面打开后，输入一句日语并点击解析。如果使用 DeepSeek，图片上传功能会自动关闭。
+</Check>
 
-  Example: Need help? Reach out to us at [support@yourcompany.com](mailto:support@yourcompany.com).
-</Tip>
+## 接下来
+
+- 查看[配置说明](/configuration)，了解每个环境变量和模型的用途。
+- 查看[部署指南](/deployment)，将应用发布到 Vercel 或 VPS。
+- 查看[开发指南](/development)，运行测试并了解项目结构。
