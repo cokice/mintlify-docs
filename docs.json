@@ -4,9 +4,9 @@
   "name": "日本語文章解析",
   "description": "面向中文学习者的日语句子解析工具文档。",
   "colors": {
-    "primary": "#DC2626",
-    "light": "#EF4444",
-    "dark": "#B91C1C"
+    "primary": "#6e4dd3",
+    "light": "#7d5fd7",
+    "dark": "#6345be"
   },
   "favicon": "/favicon.svg",
   "navigation": {
