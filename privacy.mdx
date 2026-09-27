@@ -1,0 +1,73 @@
+---
+title: "密钥与隐私"
+description: "了解 API Key 如何使用、哪些数据会发送给第三方，以及 Umami 统计记录什么。"
+icon: "shield-halved"
+---
+
+本页说明应用如何处理 API Key、你输入的内容和统计数据。部署给他人使用前，建议你先阅读本页。
+
+## API Key
+
+应用有两种 Key 来源：
+
+| 来源 | 保存位置 | 谁可以使用 |
+| --- | --- | --- |
+| 服务器 Key | 服务器环境变量 `DEEPSEEK_API_KEY`、`GEMINI_API_KEY` | 所有访客 |
+| 用户 Key | 访客浏览器的本地存储 | 仅该访客 |
+
+- 服务器 Key 只在服务端使用，不会下发到浏览器。
+- 用户 Key 随每次请求以 `Authorization: Bearer` 请求头发送到应用服务端，由服务端转发给模型服务商。服务端不保存用户 Key。
+- 请求中同时存在用户 Key 和服务器 Key 时，优先使用用户 Key。
+- 今日一句只使用服务器 Key 生成。
+
+<Warning>
+  不要提交 `.env.local` 或 `.env.production`，也不要把 API Key 写入 Docker 镜像、前端代码或日志。在 Docker 部署中，建议把 `.env.production` 的权限设为 `600`。
+</Warning>
+
+## 你的内容发送到哪里
+
+| 功能 | 发送的内容 | 接收方 |
+| --- | --- | --- |
+| 句子解析、翻译、单词详解、AI 助手 | 原文、所选词和对话内容 | 所选的模型服务商（DeepSeek 或 Gemini） |
+| 图片识别 | 压缩后的图片 | 所选的模型服务商 |
+| Edge TTS 朗读 | 要朗读的文本 | 项目作者提供的语音接口 `api.howen.ink` |
+| Gemini TTS 朗读 | 要朗读的文本 | Google Gemini |
+
+所有请求都先经过应用服务端，再转发给接收方。应用服务端不会持久化保存原文、图片、译文或对话。
+
+## 保存在浏览器中的数据
+
+以下数据只保存在访客浏览器的本地存储中，不会上传到服务器：
+
+- 最近 50 条解析原文
+- 当天的今日一句
+- 模型、语言、主题和朗读偏好
+- 用户填写的 API Key
+
+清除浏览器的网站数据即可全部删除。
+
+## Umami 统计
+
+只有同时配置了 `NEXT_PUBLIC_UMAMI_SRC` 和 `NEXT_PUBLIC_UMAMI_WEBSITE_ID`，应用才会加载 Umami。启用后，统计只记录功能是否被使用、使用了哪个服务商和模型、成功还是失败，以及耗时。
+
+### 记录的事件
+
+| 类别 | 事件 |
+| --- | --- |
+| 使用 | `analyze_sentence`、`image_text_extract`、`tts_speech`、`word_detail_click` |
+| 解析结果 | `analyze_success`、`analyze_error`、`analyze_cancel`。包含 `duration_ms` 和 `first_result_ms`，失败时只记录 `error_category`。 |
+| 聊天 | `chat_send`、`chat_success`、`chat_error` |
+
+每个事件只附带服务商、模型名称和输出模式（流式或一次性）等元数据。`error_category` 只取以下分类值之一：`timeout`、`auth`、`rate_limit`、`server`、`request`、`invalid_response`、`network` 或 `unknown`。
+
+### 不会记录的内容
+
+- 输入的原文、图片及图片提取结果
+- 词汇、释义和翻译结果
+- 聊天内容
+- 原始错误信息
+- API Key
+
+## 访问密码
+
+设置 `CODE` 后，只有输入正确密码的访客才能调用模型接口。会话 Cookie 是 HttpOnly 的，有效期 7 天。详见[配置](/configuration#访问密码)。

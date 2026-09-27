@@ -1,0 +1,51 @@
+---
+title: "许可证"
+description: "项目采用 AGPL-3.0-only 许可证，历史 MIT 版本仍保留原授权。"
+icon: "scale-balanced"
+---
+
+自许可证切换提交起，japanese-analyzer 整体采用 [GNU Affero General Public License v3.0 only（AGPL-3.0-only）](https://github.com/cokice/japanese-analyzer/blob/master/LICENSE)分发。项目没有附加禁止商用、强制购买商业授权或其他额外限制。
+
+## 版本边界
+
+| 标签 | 含义 |
+| --- | --- |
+| `mit-final` | 切换前最后一个整体采用 MIT 的快照，固定指向提交 `fb57ddc`。 |
+| `agpl-3.0-start` | 首次整体采用 AGPL-3.0-only 的提交。 |
+
+`mit-final` 及更早以 MIT 发布的代码继续保留 MIT 授权。新许可不会追溯撤销旧的 MIT 授权。原版权与许可正文保存在 [`LICENSES/MIT-legacy.txt`](https://github.com/cokice/japanese-analyzer/blob/master/LICENSES/MIT-legacy.txt)。
+
+## 你可以做什么
+
+<CardGroup cols={2}>
+  <Card title="个人和商业使用" icon="circle-check">
+    AGPL 允许个人使用和商业使用，不需要向项目购买商业授权。
+  </Card>
+  <Card title="修改和分发" icon="code-fork">
+    你可以修改代码并分发，但需要遵守 AGPL 的源码提供义务。
+  </Card>
+</CardGroup>
+
+## 你需要做什么
+
+<Steps>
+  <Step title="分发时提供源码">
+    分发可执行版本（例如 Docker 镜像）时，按 AGPL 第 6 条提供对应源码，并保留许可证和版权声明。
+  </Step>
+  <Step title="提供网络服务时提供源码">
+    修改本程序后通过网络向他人提供服务时，按 AGPL 第 13 条，向用户显著提供免费获取修改版对应源码的方式。
+  </Step>
+  <Step title="更新源码链接">
+    应用界面右上角有 GitHub 源码链接。部署修改版时，把它指向你实际运行的版本的源码，而不是保留无法反映修改的上游链接。
+  </Step>
+</Steps>
+
+<Warning>
+  对应源码必须与实际运行的版本一致，包括你的修改以及构建、安装和运行脚本。只链接到不含你修改的上游仓库，不能满足要求。不要把 API Key、密码等部署凭据放进源码包，提供配置模板即可。
+</Warning>
+
+## 贡献
+
+新增贡献请使用与当前项目兼容的许可，并保留引入的第三方代码声明。项目不要求贡献者转让版权。依赖、字体等第三方材料保留各自的许可证。
+
+完整说明见仓库中的 [`LICENSING.md`](https://github.com/cokice/japanese-analyzer/blob/master/LICENSING.md) 和 [`NOTICE`](https://github.com/cokice/japanese-analyzer/blob/master/NOTICE)。本页仅为说明，以 [AGPL 正文](https://github.com/cokice/japanese-analyzer/blob/master/LICENSE)为准。

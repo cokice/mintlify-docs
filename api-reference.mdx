@@ -1,0 +1,141 @@
+---
+title: "内部 API"
+description: "应用前端调用的服务端 API 路由、请求参数和通用约定。"
+icon: "plug"
+---
+
+应用的服务端逻辑都位于 `app/api/` 下的 Next.js API 路由中。前端通过这些路由调用模型服务商，服务端负责注入 Key、选择接口地址和调整请求参数。
+
+<Note>
+  这些路由是应用内部接口，主要供前端使用，参数可能随版本变化。如果你要在其他程序中调用，请以仓库中的源码为准。
+</Note>
+
+## 通用约定
+
+### 请求头
+
+| 请求头 | 说明 |
+| --- | --- |
+| `Content-Type: application/json` | 所有 `POST` 请求都使用 JSON 请求体。 |
+| `X-App-Locale` | 回答语言：`zh-CN`（默认）、`zh-TW`、`en` 或 `ko`。影响译文、释义和聊天回答的语言。 |
+| `Authorization: Bearer <key>` | 可选。用户自己的 API Key。省略时使用服务器配置的 Key。 |
+
+### 通用参数
+
+模型相关的路由都接受以下参数：
+
+| 参数 | 类型 | 说明 |
+| --- | --- | --- |
+| `provider` | `string` | `deepseek`（默认）或 `gemini`。无效值按 `deepseek` 处理。 |
+| `model` | `string` | 模型名称。不在可用列表中时，改用该服务商的默认模型。 |
+
+<Warning>
+  请求体中不能包含 `apiUrl`。服务端会返回 `400`，并提示「客户端不再支持自定义 API URL，请在服务器环境变量中配置上游端点。」接口地址只能通过 `DEEPSEEK_API_URL` 或 `GEMINI_API_URL` 配置。
+</Warning>
+
+### 访问验证
+
+配置了 `CODE` 时，除 `/api/auth` 和 `/api/umami/script` 外，其他路由都要求请求携带有效的 `ja_session` Cookie，否则返回：
+
+```json
+{ "error": { "message": "请先通过密码验证" } }
+```
+
+### 错误格式
+
+出错时，路由返回相应的 HTTP 状态码和统一格式的错误：
+
+```json
+{ "error": { "message": "未提供API密钥，请在设置中配置API密钥或联系管理员配置服务器密钥" } }
+```
+
+### 流式响应
+
+开启流式输出时，路由直接转发上游的 OpenAI 兼容 Server-Sent Events 流，`Content-Type` 为 `text/event-stream`。关闭时，返回上游的完整 JSON 响应。
+
+## 路由列表
+
+| 方法 | 路由 | 用途 |
+| --- | --- | --- |
+| `POST` | `/api/analyze` | 句子分词与注音 |
+| `POST` | `/api/translate` | 整句翻译 |
+| `POST` | `/api/word-detail` | 单词或多词短语详解 |
+| `POST` | `/api/image-to-text` | 图片文字提取 |
+| `POST` | `/api/chat` | AI 日语助手对话 |
+| `POST` | `/api/tts` | 语音合成 |
+| `GET` | `/api/daily-sentence` | 获取今日一句 |
+| `GET` / `POST` | `/api/auth` | 查询验证状态 / 验证访问密码 |
+| `GET` | `/api/umami/script` | 按配置输出 Umami 加载脚本 |
+
+### POST /api/analyze
+
+| 参数 | 类型 | 说明 |
+| --- | --- | --- |
+| `prompt` | `string` | 必填。包含原文的解析提示词。 |
+| `stream` | `boolean` | 是否流式返回。默认 `false`。 |
+
+模型返回形如 `{"tokens": [{"word", "pos", "furigana"}]}` 的结构化 JSON。
+
+### POST /api/translate
+
+| 参数 | 类型 | 说明 |
+| --- | --- | --- |
+| `text` | `string` | 必填。要翻译的日语原文。 |
+| `stream` | `boolean` | 是否流式返回。默认 `false`。 |
+
+译文语言由 `X-App-Locale` 决定，保留原文的段落和换行结构。
+
+### POST /api/word-detail
+
+| 参数 | 类型 | 说明 |
+| --- | --- | --- |
+| `word` | `string` | 必填。所选的词或短语。 |
+| `sentence` | `string` | 必填。所在的句子或上下文。 |
+| `pos` | `string` | 单词时必填。解析得到的词性。 |
+| `furigana` | `string` | 可选。解析得到的读音。 |
+| `kind` | `string` | 可选。设为 `phrase` 时按多词短语解析。 |
+| `useStream` | `boolean` | 是否流式返回。默认 `false`。 |
+
+单词详解返回 `chineseTranslation`、`dictionaryForm`、`explanation`、`conjugation`、`example`、`exampleTranslation`、`pos` 和 `furigana` 字段。短语详解额外返回 `category` 和 `breakdown`。
+
+### POST /api/image-to-text
+
+| 参数 | 类型 | 说明 |
+| --- | --- | --- |
+| `imageData` | `string` | 必填。图片的 Data URL，不超过 8 MB。 |
+| `prompt` | `string` | 提取指令。 |
+| `stream` | `boolean` | 是否流式返回。默认 `false`。 |
+
+### POST /api/chat
+
+| 参数 | 类型 | 说明 |
+| --- | --- | --- |
+| `messages` | `array` | 必填。OpenAI 格式的消息列表，不能为空。 |
+| `useStream` | `boolean` | 是否流式返回。默认 `true`。 |
+
+服务端会在消息列表前加入日语学习助手的系统提示词。
+
+### POST /api/tts
+
+| 参数 | 类型 | 说明 |
+| --- | --- | --- |
+| `text` | `string` | 必填。要朗读的文本。 |
+| `provider` | `string` | `edge`（默认）或 `gemini`。 |
+| `gender` | `string` | Edge TTS 使用。`female`（默认）或 `male`。 |
+| `rate` | `number` | Edge TTS 使用。语速，默认 `0`。 |
+| `voice` | `string` | Gemini TTS 使用。`Kore`（默认）、`Puck`、`Zephyr`、`Aoede`、`Leda` 或 `Charon`。 |
+
+成功时返回 Base64 编码的音频：
+
+```json
+{ "audio": "<base64>", "mimeType": "audio/mp3" }
+```
+
+### GET /api/daily-sentence
+
+返回当天（日本时间）的今日一句，包含 `date`、`text`、`tokens` 和四种语言的 `translation`。响应的 `Cache-Control` 有效期到日本时间零点。服务器没有可用 Key 或生成失败时返回 `503`，前端会改用内置备用句。
+
+### /api/auth
+
+- `GET`：返回 `{ "requiresAuth": boolean, "authenticated": boolean }`。
+- `POST`：请求体为 `{ "password": "..." }`。密码正确时返回 `{ "success": true }` 并写入会话 Cookie，错误时返回 `401`。
