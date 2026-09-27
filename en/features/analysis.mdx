@@ -1,0 +1,92 @@
+---
+title: "Sentence analysis"
+description: "Label each word with its kana reading, romaji, and part of speech, and get a full translation automatically."
+icon: "spell-check"
+---
+
+Sentence analysis is the app's core feature. After you enter some Japanese, the app splits it into tokens (words). It labels each word with its furigana (kana reading), romaji, and part of speech, then generates a full translation below.
+
+## Analyze Japanese text
+
+<Steps>
+  <Step title="Enter the text">
+    Type or paste Japanese into the input box. You can also click **Sentence of the day** or an item under **Recent** on the home page to fill in the text directly.
+  </Step>
+  <Step title="Click Analyze">
+    Click **Analyze**. With streaming output on, tokens appear as they are generated.
+  </Step>
+  <Step title="Read the results">
+    The results area shows readings word by word. When the analysis finishes, the translation area automatically translates the whole text.
+  </Step>
+</Steps>
+
+While the analysis is running, click **Stop analysis** to cancel the current request. When it finishes, click **Edit text** to change the sentence, or click **New text** to clear it and start over.
+
+## What the results include
+
+Each token includes three kinds of information:
+
+| Information | Description |
+| --- | --- |
+| Furigana | Shown above words that contain kanji. Words written only in kana don't get a repeated reading. |
+| Romaji | Converted locally from the kana using Hepburn romanization. Long vowels keep their vowel spelling (for example, `ou`). |
+| Part of speech | Each word has a colored underline, and the color indicates its part-of-speech group. |
+
+The legend below the results lists the part-of-speech groups that appear in the sentence: Noun, Verb, Adjective, Na-adjective, Adverb, Adnominal, Conjunction, Interjection, Particle, Auxiliary verb, and Other. Punctuation has no underline.
+
+### Show or hide readings
+
+Two toggles sit at the top of the results area:
+
+- **Show furigana**: Toggles the kana above kanji.
+- **Show romaji**: Toggles the romaji below words.
+
+With the readings hidden, you can test your reading on the original text, then turn them back on to check.
+
+## Full translation
+
+When the analysis finishes, the app automatically translates the whole text into your current interface language. The translation area offers these actions:
+
+- **Copy**: Copy the translation.
+- **Translate again**: Generate a new translation of the same text.
+- **Collapse** / **Expand**: Fold or unfold the translation area.
+
+<Note>
+  The translation language follows the interface language. When you switch to English, translations, word definitions, and AI assistant replies all switch to English. For details, see [Settings](/en/features/settings#interface-language).
+</Note>
+
+## Long texts are analyzed in chunks
+
+Long passages are split automatically into chunks of about 280 characters each, up to a maximum of 420 characters. The app breaks at sentence endings such as periods, question marks, and exclamation marks, and avoids splitting paired brackets and quotation marks.
+
+- With streaming output on, up to 3 chunks are requested at the same time. With it off, chunks are analyzed one after another. Either way, the results are joined in the original order.
+- If a chunk doesn't return a complete result, the error message tells you which chunk failed, for example “Chunk 2/5 returned an incomplete analysis. Please try again.”
+- The app checks that each chunk's tokens join back into the original text. If they don't, it asks you to try again, so no characters are dropped or added.
+
+## Paste from web pages and Markdown
+
+When you copy text from a web page or a Markdown document, the app cleans up the formatting automatically:
+
+- Removes HTML tags, scripts, styles, and hidden elements, while keeping paragraphs and line breaks.
+- Removes Markdown markup, while keeping image alt text.
+- Removes link URLs, keeping only the link text.
+
+<Tip>
+  If you type text that contains an `https://` link, the app keeps the link intact as a single symbol so the model doesn't split it or add readings.
+</Tip>
+
+## Streaming output
+
+**Streaming output** is on by default, so analysis, translations, and definitions appear in real time. If your connection is unstable and results often get cut off, you can turn it off in **Settings** to get the complete result all at once.
+
+## When analysis fails
+
+| Message | Cause and fix |
+| --- | --- |
+| No API key provided | Neither the server nor the browser has a usable key. Enter a key in **Settings**, or ask your administrator to configure a server key. |
+| Truncated by the model (`finish_reason: length`) | The output was too long. Shorten the text and analyze it again. |
+| Stopped by the model's content filter | The model provider refused the content. |
+| Did not preserve the original text | The tokens the model returned don't match the original text. Analyze it again. |
+| The upstream API timed out | The server waited 60 seconds with no upstream response, or streaming output produced no new content for 90 seconds. Try again later. |
+
+For more issues, see [Troubleshooting](/en/troubleshooting).

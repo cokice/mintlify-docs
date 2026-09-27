@@ -1,0 +1,57 @@
+---
+title: "Image recognition"
+description: "Upload or paste a screenshot to extract the Japanese text in it, then analyze it."
+icon: "image"
+---
+
+Image recognition extracts Japanese text from screenshots, photos, or manga and fills it into the input box. After you confirm the text is correct, click **Analyze**.
+
+## Extract text from an image
+
+<Tabs>
+  <Tab title="Upload an image">
+    1. Click the **Extract text from an image** button next to the input box.
+    2. Choose an image file.
+    3. Wait for recognition to finish. The extracted text fills the input box.
+  </Tab>
+  <Tab title="Paste a screenshot">
+    1. Take a screenshot or copy an image.
+    2. In the input box, press <kbd>Ctrl</kbd> + <kbd>V</kbd> (<kbd>⌘</kbd> + <kbd>V</kbd> on macOS).
+    3. When the app detects the image, recognition starts automatically.
+  </Tab>
+</Tabs>
+
+The app only extracts text. It doesn't translate or interpret the image content. Line breaks in the image are replaced with spaces, and the original text order is preserved.
+
+When recognition finishes, the page shows “Text extracted. Review it, then select ‘Analyze’.” Check and correct the recognized text, then click **Analyze**.
+
+<Tip>
+  With streaming output on, the recognized text appears in the input box gradually.
+</Tip>
+
+## Which model is used
+
+Image recognition uses the text model you selected in **Settings**:
+
+| AI provider | Recognition model |
+| --- | --- |
+| DeepSeek | `deepseek-flash` |
+| Gemini | Same as the selected model version: `gemini-flash-latest` or `gemini-flash-lite-latest` |
+
+## Image processing and limits
+
+- Before uploading, the app compresses the image in your browser. If the longer side exceeds 1600 pixels, the image is scaled down proportionally and re-encoded at 70% quality.
+- The compressed image data can't exceed 8 MB.
+- Only image files are accepted. If you choose another type of file, the page shows “Please upload an image file.”
+
+## When recognition fails
+
+| Message | Fix |
+| --- | --- |
+| No text was found in the image | The image has no recognizable text, or the text is too small. Try a clearer image. |
+| Could not load the image / Could not read the file | The image file is corrupted, or its format isn't supported by the browser. Use PNG or JPEG instead. |
+| No API key provided | The current provider has no usable key. Enter one in **Settings**, or contact your administrator. |
+
+<Note>
+  The image is sent to the model provider through the app server only during recognition, and the app doesn't store it. Umami analytics doesn't record images or extracted text either. For details, see [Keys and privacy](/en/privacy).
+</Note>

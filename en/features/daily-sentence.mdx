@@ -1,0 +1,51 @@
+---
+title: "Sentence of the day and recent texts"
+description: "The home page recommends one Japanese sentence each day and keeps the texts you analyzed recently."
+icon: "calendar-days"
+---
+
+The home page has two areas to help you get started quickly: **Sentence of the day** and **Recent**. Click any item in either area, and the app fills in the text and starts the analysis right away.
+
+## Sentence of the day
+
+The sentence of the day is a short Japanese sentence recommended each day. It comes with furigana and a translation in your current interface language. Click it to analyze the sentence.
+
+### How sentences are generated
+
+- The sentence updates at midnight **Japan time**. Every visitor sees the same sentence all day.
+- The server generates it with AI once a day and caches the result. Later requests on the same day don't call the model again.
+- Topics and grammar points rotate by date. With 19 topics and 17 grammar points, it takes 323 days before a combination repeats.
+- The difficulty is JLPT N5–N3, and the length is 10–28 characters. The content avoids topics such as personal names, brands, politics, religion, and disasters.
+- Translations are generated in four languages at once: 简体中文, 繁體中文, English, and 한국어.
+- After generation, the server validates the format and confirms that the tokens join back into the original sentence. If the sentence fails, it retries with a different one.
+
+### Backup sentences
+
+In the following cases, the home page shows a built-in backup sentence instead:
+
+- The server has no `DEEPSEEK_API_KEY` or `GEMINI_API_KEY` configured.
+- Generation fails, or the server can't reach the model provider.
+- The request times out.
+
+There are 7 backup sentences. They come pre-segmented with readings, rotate by date, and don't call the AI.
+
+<Note>
+  The sentence of the day is generated only with the key configured on the server. It never uses keys that visitors enter in **Settings**. The server uses DeepSeek first and falls back to Gemini when there is no DeepSeek key.
+</Note>
+
+<Tip>
+  If the home page keeps rotating among a few fixed sentences, the server has no usable key, or its outbound network can't reach the model provider. For details, see [Troubleshooting](/en/troubleshooting).
+</Tip>
+
+## Recent
+
+After each successful analysis, the app saves the text to the **Recent** list.
+
+- Records are stored only in the current browser's local storage and are never uploaded to the server.
+- Up to 50 records are kept. For identical texts, only the latest one is kept.
+- The home page shows the 3 most recent records by default. Click **Show all N** to see every record.
+- Click **Clear history** to delete all records.
+
+<Warning>
+  In private browsing mode or in a browser with local storage disabled, the page shows “History cannot be saved to this browser right now and may be lost on refresh.”
+</Warning>

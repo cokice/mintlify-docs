@@ -1,0 +1,76 @@
+---
+title: "Word details and multi-word selection"
+description: "Click a word to see its meaning and usage in the sentence, or select several words to have them explained as a whole."
+icon: "book-open"
+---
+
+After the analysis finishes, you can click every word in the results. The app uses the context of the whole sentence to generate a dictionary-style definition. It explains only what the word means in this sentence instead of listing every sense.
+
+## View word details
+
+Click an underlined word in the results. The details panel shows the following:
+
+| Field | Description |
+| --- | --- |
+| Reading and romaji | The kana reading and romaji of the selected word. If the model finds that the original reading is wrong, it corrects it. |
+| Definition | A concise definition of the sense used in this sentence, usually one or two near-synonyms. |
+| Dictionary form | The word's dictionary form. For example, the dictionary form of 「読んだ」 is 「読む」. |
+| Part of speech | The part of speech in traditional Japanese school grammar, with subcategories when needed, for example 「動詞（五段・他動）」. |
+| Usage in this sentence | How the word combines with neighboring words, and its specific role in this sentence. |
+| Conjugation | Shown only when the word is actually conjugated in this sentence, for example “読む → 読んだ; ta-form, indicating the past.” |
+| Example | A short example sentence that uses the same sense or the same conjugated form, with a translation. |
+
+Other actions in the panel:
+
+- **Play pronunciation**: Read the selected word aloud.
+- **Refresh definition**: Generate a new definition for the same word.
+- **Show more** / **Show less**: Expand or collapse longer explanations.
+
+<Note>
+  Definitions are written in your current interface language. If the text is longer than 1,000 characters, the app sends only the two sentences before and after the selected word as context, to keep requests short.
+</Note>
+
+## Multi-word selection
+
+Some meanings only make sense when several words are taken together, such as the grammar pattern 「〜なければならない」 or a set expression. You can select several consecutive words and have the app explain them as a whole.
+
+<Tabs>
+  <Tab title="Desktop">
+    - Hold down the mouse button and drag across several words.
+    - Or click one word, then hold <kbd>Shift</kbd> and click another word to select every word in between.
+  </Tab>
+  <Tab title="Mobile">
+    1. Long-press a word for about half a second to start selecting.
+    2. Tap another word to select the span.
+  </Tab>
+  <Tab title="From the details panel">
+    1. Click a word to open the details panel.
+    2. Click **Select more words together**.
+    3. Click another word to select the span.
+  </Tab>
+</Tabs>
+
+### Selection results
+
+The app first determines what kind of span you selected, then explains it accordingly:
+
+| Type | Meaning | Example |
+| --- | --- | --- |
+| One word | Originally a single word that was split apart, such as a compound word or a proper noun. | 図書館 |
+| Grammar pattern | A fixed grammatical form. 「〜」 marks where it attaches. | 〜なければならない |
+| Set expression | An idiom or fixed phrase. | 気がする |
+| Phrase | An ordinary word combination, or just several words in a row. | 本を読む |
+
+Besides the definition and example, the selection result also shows a **Breakdown**. It explains which parts make up the span and what each part does. For example:
+
+```text
+なけれ (hypothetical form of ない) + ば (condition) + なら (nai-stem of なる) + ない: "It won't do if you don't," meaning "must."
+```
+
+### Merge split words
+
+If the app determines that the selection is **One word**, the details panel says “These pieces are actually one word” and shows a **Merge into one word** button. Click it to merge those tokens into one in the current analysis results. The reading is updated as well.
+
+<Tip>
+  Merging only affects the analysis results on the current page. If you analyze the same text again, the model segments it from scratch.
+</Tip>

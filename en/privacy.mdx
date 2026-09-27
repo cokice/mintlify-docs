@@ -1,0 +1,73 @@
+---
+title: "Keys and privacy"
+description: "Learn how API keys are used, what data is sent to third parties, and what Umami analytics records."
+icon: "shield-halved"
+---
+
+This page explains how the app handles API keys, the content you enter, and analytics data. Read it before you deploy the app for other people.
+
+## API keys
+
+The app has two sources of keys:
+
+| Source | Where it's stored | Who can use it |
+| --- | --- | --- |
+| Server key | Server environment variables `DEEPSEEK_API_KEY` and `GEMINI_API_KEY` | All visitors |
+| User key | Local storage in the visitor's browser | Only that visitor |
+
+- The server key is used only on the server and is never sent to the browser.
+- The user key is sent to the app server with each request in an `Authorization: Bearer` header. The server forwards it to the model provider and doesn't store it.
+- When a request has both a user key and a server key, the user key takes priority.
+- The sentence of the day is generated with the server key only.
+
+<Warning>
+  Don't commit `.env.local` or `.env.production`. Don't put API keys in Docker images, frontend code, or logs. For Docker deployments, set the permissions of `.env.production` to `600`.
+</Warning>
+
+## Where your content goes
+
+| Feature | What is sent | Recipient |
+| --- | --- | --- |
+| Sentence analysis, translation, word details, AI assistant | Original text, selected words, and chat messages | The selected model provider (DeepSeek or Gemini) |
+| Image recognition | The compressed image | The selected model provider |
+| Edge TTS | The text to read aloud | The speech API `api.howen.ink`, provided by the project author |
+| Gemini TTS | The text to read aloud | Google Gemini |
+
+Every request goes through the app server first and is then forwarded to the recipient. The app server doesn't persist original text, images, translations, or chats.
+
+## Data stored in your browser
+
+The following data is stored only in the visitor's browser local storage and is never uploaded to the server:
+
+- The 50 most recently analyzed texts
+- Today's sentence of the day
+- Model, language, theme, and text-to-speech preferences
+- API keys the user entered
+
+Clear the site data in your browser to delete all of it.
+
+## Umami analytics
+
+The app loads Umami only when both `NEXT_PUBLIC_UMAMI_SRC` and `NEXT_PUBLIC_UMAMI_WEBSITE_ID` are configured. When enabled, analytics records only whether a feature was used, which provider and model were used, whether it succeeded or failed, and how long it took.
+
+### Recorded events
+
+| Category | Events |
+| --- | --- |
+| Usage | `analyze_sentence`, `image_text_extract`, `tts_speech`, `word_detail_click` |
+| Analysis results | `analyze_success`, `analyze_error`, `analyze_cancel`. These include `duration_ms` and `first_result_ms`. On failure, only `error_category` is recorded. |
+| Chat | `chat_send`, `chat_success`, `chat_error` |
+
+Each event carries only metadata such as the provider, the model name, and the output mode (streaming or all at once). `error_category` takes only one of these values: `timeout`, `auth`, `rate_limit`, `server`, `request`, `invalid_response`, `network`, or `unknown`.
+
+### What is never recorded
+
+- Input text, images, and text extracted from images
+- Vocabulary, definitions, and translations
+- Chat content
+- Raw error messages
+- API keys
+
+## Access password
+
+When you set `CODE`, only visitors who enter the correct password can call the model endpoints. The session cookie is HttpOnly and valid for 7 days. For details, see [Configuration](/en/configuration#access-password).

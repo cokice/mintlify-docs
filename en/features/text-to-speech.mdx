@@ -1,0 +1,68 @@
+---
+title: "Read text aloud"
+description: "Read Japanese text aloud with Edge TTS or Gemini TTS, with adjustable voice and speed."
+icon: "volume-high"
+---
+
+You can have the app read the Japanese text in the input box aloud, or play the pronunciation of a single word in the word details panel.
+
+## Read the text aloud
+
+Click the **Listen** button in the input area. When you hover over it, the button shows the estimated time, for example “Read aloud (about 5–10 seconds)”.
+
+| Text length | Estimated time |
+| --- | --- |
+| Up to 20 characters | 5–10 seconds |
+| 21–50 characters | 10–20 seconds |
+| 51–100 characters | 20–30 seconds |
+| More than 100 characters | 30–60 seconds |
+
+In the word details panel, click **Play pronunciation** to read only the selected word.
+
+## Choose a speech engine
+
+Open **Voice settings** in the input area and choose an option under **Speech engine**:
+
+<Tabs>
+  <Tab title="Edge TTS (default)">
+    Works out of the box with no API key.
+
+    | Setting | Options |
+    | --- | --- |
+    | Voice | **Female (Nanami)**: `ja-JP-NanamiNeural`<br />**Male**: `ja-JP-KeitaNeural` |
+    | Speed | From -100 to +100 in steps of 10. The interface shows the value as Very slow, Slow, Normal, Fast, or Very fast. |
+  </Tab>
+  <Tab title="Gemini TTS">
+    Uses the `gemini-3.1-flash-tts-preview` model and requires a Gemini API key. It works if the server has `GEMINI_API_KEY` configured, or if you entered a Gemini key in **Settings**.
+
+    | Voice | Style |
+    | --- | --- |
+    | Kore | Firm |
+    | Puck | Upbeat |
+    | Zephyr | Bright |
+    | Aoede | Breezy |
+    | Leda | Youthful |
+    | Charon | Informative |
+
+    **Speaking style** options:
+
+    - **Natural**: The default style.
+    - **Slow**: Slows down the speech, which helps with shadowing practice.
+    - **Clear**: Pronounces words more clearly.
+  </Tab>
+</Tabs>
+
+Your speech engine, voice, speed, and style are saved in the current browser and restored automatically the next time you open the app.
+
+## When text-to-speech fails
+
+| Message | Fix |
+| --- | --- |
+| Enter some text first | The input box is empty. Enter the Japanese you want to hear first. |
+| No API key provided | You're using Gemini TTS without a usable Gemini key. Enter a key, or switch back to Edge TTS. |
+| Upstream TTS request timed out | The speech service didn't respond within 60 seconds. Shorten the text and try again. |
+| Edge TTS returned empty audio | The speech service returned no audio. Try again later, or switch to Gemini TTS. |
+
+<Note>
+  Edge TTS requests are forwarded through the app server to the speech API `api.howen.ink`, provided by the project author. If you don't want your text sent to that service, use Gemini TTS instead. For details, see [Keys and privacy](/en/privacy).
+</Note>

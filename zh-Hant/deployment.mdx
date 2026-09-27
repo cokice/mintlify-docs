@@ -1,0 +1,240 @@
+---
+title: "部署"
+description: "使用 Vercel、Docker Compose 或 docker run 部署日本語文章解析。"
+icon: "server"
+---
+
+你可以把應用程式部署到 Vercel，也可以用 Docker 在自己的伺服器上執行。如果你想讓 AI 程式設計助手代勞，請參閱[讓 AI Agent 部署](/zh-Hant/ai-deploy)。
+
+| 方式 | 適用情境 |
+| --- | --- |
+| [Vercel](#部署到-vercel) | 沒有伺服器，想以最快速度上線。 |
+| [Docker Compose](#使用-docker-compose) | 在 VPS 上長期執行，建議使用此方式。 |
+| [docker run](#使用-docker-run) | 不想使用 Compose 檔案。 |
+
+## 部署到 Vercel
+
+<Steps>
+  <Step title="匯入儲存庫">
+    點選下方按鈕，或在 Vercel 中匯入 `cokice/japanese-analyzer`。
+
+    <Card title="Deploy with Vercel" icon="triangle" href="https://vercel.com/new/clone?repository-url=https://github.com/cokice/japanese-analyzer">
+      從 GitHub 儲存庫建立一個新的 Vercel 專案。
+    </Card>
+  </Step>
+
+  <Step title="設定環境變數">
+    在專案中開啟 **Settings** → **Environment Variables**，至少新增 `DEEPSEEK_API_KEY`。
+
+    需要 Gemini 模型或 Gemini TTS 時，再新增 `GEMINI_API_KEY`。需要存取密碼時，新增 `CODE`。完整清單請見[設定](/zh-Hant/configuration)。
+  </Step>
+
+  <Step title="重新部署">
+    觸發一次新的部署，然後開啟 Vercel 指派的網域。
+  </Step>
+</Steps>
+
+<Tip>
+  如果你已經安裝並登入 Vercel CLI，也可以在儲存庫目錄中執行 `vercel`，用 `vercel env add` 新增變數，再執行 `vercel --prod` 發布。
+</Tip>
+
+## 使用 Docker Compose
+
+官方映像檔 `howenhowen/japanese-analyzer` 支援 `linux/amd64` 和 `linux/arm64`。容器監聽 `3002` 連接埠。
+
+<Steps>
+  <Step title="準備目錄">
+    ```bash
+    mkdir -p ~/japanese-analyzer && cd ~/japanese-analyzer
+    curl -fsSL https://raw.githubusercontent.com/cokice/japanese-analyzer/master/docker-compose.hub.yml -o docker-compose.yml
+    ```
+
+    如果你已經複製了儲存庫，可以直接使用其中的 `docker-compose.hub.yml`。
+  </Step>
+
+  <Step title="建立設定檔">
+    建立 `.env.production`，至少填入一組 Key：
+
+    ```env .env.production
+    DEEPSEEK_API_KEY=your_deepseek_api_key
+    GEMINI_API_KEY=
+    CODE=
+    ```
+
+    限制檔案權限，避免其他使用者讀取：
+
+    ```bash
+    chmod 600 .env.production
+    ```
+  </Step>
+
+  <Step title="啟動服務">
+    ```bash
+    docker compose up -d
+    ```
+  </Step>
+
+  <Step title="驗證">
+    ```bash
+    docker compose ps
+    docker compose logs --tail 50
+    curl -fsS -o /dev/null -w "%{http_code}\n" http://127.0.0.1:3002
+    ```
+
+    容器狀態為 `running`、日誌沒有錯誤，且 `curl` 傳回 `200`，就表示部署成功。開啟 `http://伺服器IP:3002` 即可存取應用程式。
+  </Step>
+</Steps>
+
+Compose 檔案已設定 `restart: unless-stopped`，伺服器重新開機後容器會自動啟動。
+
+<Accordion title="docker-compose.hub.yml 內容">
+  ```yaml
+  services:
+    japanese-analyzer:
+      image: ${DOCKER_IMAGE:-howenhowen/japanese-analyzer:latest}
+      env_file:
+        - .env.production
+      environment:
+        NODE_ENV: production
+        PORT: "3002"
+        HOSTNAME: 0.0.0.0
+      ports:
+        - "3002:3002"
+      restart: unless-stopped
+  ```
+
+  設定 `DOCKER_IMAGE` 環境變數可以指定其他映像檔標籤，例如某個版本標籤或 `sha-<commit>` 標籤。可用的標籤請見[映像檔標籤](/zh-Hant/development#映像檔標籤)。
+</Accordion>
+
+### 變更連接埠
+
+如果主機的 `3002` 連接埠已被占用，請修改 `ports` 左側的主機連接埠，容器內的連接埠保持不變：
+
+```yaml
+ports:
+  - "3102:3002"
+```
+
+### 從原始碼建置映像檔
+
+儲存庫中的 `docker-compose.yml` 會從本機的 `Dockerfile` 建置映像檔：
+
+```bash
+git clone https://github.com/cokice/japanese-analyzer.git
+cd japanese-analyzer
+cp .env.production.example .env.production   # 填入 Key
+docker compose up -d --build
+```
+
+## 使用 docker run
+
+```bash
+docker run -d \
+  --name japanese-analyzer \
+  --restart unless-stopped \
+  -p 3002:3002 \
+  -e DEEPSEEK_API_KEY="your_deepseek_api_key" \
+  -e GEMINI_API_KEY="" \
+  -e CODE="" \
+  howenhowen/japanese-analyzer:latest
+```
+
+需要 Umami 時，再加上：
+
+```bash
+  -e NEXT_PUBLIC_UMAMI_SRC="https://cloud.umami.is/script.js" \
+  -e NEXT_PUBLIC_UMAMI_WEBSITE_ID="your_umami_website_id" \
+```
+
+查看日誌：
+
+```bash
+docker logs -f japanese-analyzer
+```
+
+## 更新到最新版本
+
+<Tabs>
+  <Tab title="Docker Compose">
+    ```bash
+    cd ~/japanese-analyzer
+    docker compose pull
+    docker compose up -d
+    ```
+  </Tab>
+  <Tab title="docker run">
+    先拉取新映像檔，刪除舊容器，再用原本的參數重新執行：
+
+    ```bash
+    docker pull howenhowen/japanese-analyzer:latest
+    docker rm -f japanese-analyzer
+    # 再次執行上方的 docker run 指令
+    ```
+
+    <Warning>
+      `docker rm -f` 會強制刪除容器。執行前請確認容器名稱，並記下原本的執行參數。
+    </Warning>
+  </Tab>
+  <Tab title="Vercel">
+    推送到儲存庫的預設分支後，Vercel 會自動重新部署。如果你部署的是 Fork，請先同步上游更新。
+  </Tab>
+</Tabs>
+
+## 設定網域與 HTTPS
+
+容器正常執行後，你可以為它加上網域和 HTTPS：
+
+<Steps>
+  <Step title="設定網域解析">
+    把網域的 A 記錄指向伺服器的公用 IP。在雲端服務商的安全性群組和系統防火牆中開放 `80` 和 `443` 連接埠。
+  </Step>
+  <Step title="檢查現有的 Web 伺服器">
+    ```bash
+    command -v nginx caddy
+    ```
+
+    已經有 Nginx 或 Caddy 時，直接沿用，不要再另外安裝一套。
+  </Step>
+  <Step title="設定反向 Proxy">
+    <CodeGroup>
+      ```caddyfile Caddy
+      your.domain.com {
+          reverse_proxy 127.0.0.1:3002
+      }
+      ```
+
+      ```nginx Nginx
+      server {
+          listen 80;
+          server_name your.domain.com;
+
+          location / {
+              proxy_pass http://127.0.0.1:3002;
+              proxy_http_version 1.1;
+              proxy_set_header Host $host;
+              proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+              proxy_set_header X-Forwarded-Proto $scheme;
+              proxy_buffering off;
+          }
+      }
+      ```
+    </CodeGroup>
+
+    Caddy 會自動申請並續期 Let's Encrypt 憑證。使用 Nginx 時，請用 certbot 申請憑證，並把 HTTP 重新導向到 HTTPS。
+  </Step>
+  <Step title="驗證">
+    ```bash
+    curl -I https://your.domain.com
+    ```
+
+    傳回正常的狀態碼且憑證有效，就表示設定完成。
+  </Step>
+</Steps>
+
+<Tip>
+  在 Nginx 中設定 `proxy_buffering off`，可以避免串流輸出被緩衝後一次傳回。
+</Tip>
+
+## 部署自己的修改版
+
+本專案採用 AGPL-3.0-only 授權條款。如果你修改了程式碼並透過網路向他人提供服務，就需要向使用者提供修改版的對應原始碼，並把介面中的 GitHub 原始碼連結指向你實際執行的版本。詳見[授權條款](/zh-Hant/license)。

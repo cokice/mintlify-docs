@@ -1,0 +1,106 @@
+---
+title: "快速開始"
+description: "從原始碼在本機安裝、設定並執行日本語文章解析。"
+icon: "rocket"
+---
+
+本指南帶你從原始碼啟動應用程式。完成後，你可以在瀏覽器中輸入日語句子並查看解析結果。
+
+## 事前準備
+
+開始之前，請準備：
+
+- [Node.js 22](https://nodejs.org/) 和 npm
+- Git
+- 一組 DeepSeek API Key 或 Gemini API Key
+
+<Tip>
+  建議先設定 DeepSeek。它是預設的服務商，負責解析、翻譯、釋義和圖片辨識。只有 Gemini TTS 朗讀必須使用 Gemini API Key。
+</Tip>
+
+## 啟動應用程式
+
+<Steps>
+  <Step title="複製儲存庫">
+    ```bash
+    git clone https://github.com/cokice/japanese-analyzer.git
+    cd japanese-analyzer
+    ```
+  </Step>
+
+  <Step title="安裝相依套件">
+    ```bash
+    npm ci
+    ```
+  </Step>
+
+  <Step title="建立環境變數檔案">
+    <CodeGroup>
+      ```bash macOS / Linux
+      cp .env.example .env.local
+      ```
+
+      ```powershell Windows PowerShell
+      Copy-Item .env.example .env.local
+      ```
+    </CodeGroup>
+  </Step>
+
+  <Step title="填入 API Key">
+    開啟 `.env.local`，至少填入一組 Key：
+
+    ```env .env.local
+    DEEPSEEK_API_KEY=your_deepseek_api_key
+    ```
+
+    其他變數都是選填。完整清單請見[設定](/zh-Hant/configuration)。
+  </Step>
+
+  <Step title="啟動開發伺服器">
+    ```bash
+    npm run dev
+    ```
+
+    開啟 [http://localhost:3000](http://localhost:3000)。
+  </Step>
+</Steps>
+
+<Check>
+  輸入一句日語，例如「天気がいいから、散歩しましょう」，然後點選**解析**。如果看到逐詞注音和中文譯文，就表示設定成功。你也可以直接點選首頁的**今日一句**來解析。
+</Check>
+
+## 在手機上存取
+
+如果你想用同一個區域網路中的手機存取開發伺服器，請讓伺服器監聽所有網路介面：
+
+```bash
+npm run dev -- --hostname 0.0.0.0
+```
+
+然後在手機瀏覽器中開啟 `http://電腦IP:3000`。
+
+## 只設定了 Gemini Key
+
+應用程式預設使用 DeepSeek。如果你只填入了 `GEMINI_API_KEY`，請在開啟頁面後點選右上角的**設定**，把**模型服務**切換為 **Gemini**，再點選**儲存設定**。
+
+## 執行正式版建置
+
+想在本機試用正式版時，請執行：
+
+```bash
+npm run build
+npm start
+```
+
+`npm start` 預設監聽 `3000` 連接埠。
+
+## 接下來
+
+<Columns cols={2}>
+  <Card title="使用指南" icon="book-open" href="/zh-Hant/features/analysis">
+    了解解析、單字詳解和多詞圈選的用法。
+  </Card>
+  <Card title="部署" icon="server" href="/zh-Hant/deployment">
+    發布到 Vercel，或用 Docker 在伺服器上執行。
+  </Card>
+</Columns>

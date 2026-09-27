@@ -1,0 +1,141 @@
+---
+title: "Internal API"
+description: "The server-side API routes the app's frontend calls, their request parameters, and shared conventions."
+icon: "plug"
+---
+
+All of the app's server-side logic lives in Next.js API routes under `app/api/`. The frontend calls model providers through these routes. The server injects keys, chooses the API URL, and adjusts request parameters.
+
+<Note>
+  These routes are internal to the app and are mainly used by the frontend. Their parameters may change between versions. If you call them from another program, treat the source code in the repository as the source of truth.
+</Note>
+
+## Shared conventions
+
+### Request headers
+
+| Header | Description |
+| --- | --- |
+| `Content-Type: application/json` | All `POST` requests use a JSON body. |
+| `X-App-Locale` | Response language: `zh-CN` (default), `zh-TW`, `en`, or `ko`. Controls the language of translations, definitions, and chat replies. |
+| `Authorization: Bearer <key>` | Optional. The user's own API key. If omitted, the server-configured key is used. |
+
+### Shared parameters
+
+All model-related routes accept these parameters:
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `provider` | `string` | `deepseek` (default) or `gemini`. Invalid values are treated as `deepseek`. |
+| `model` | `string` | Model name. If it isn't in the list of available models, the provider's default model is used instead. |
+
+<Warning>
+  The request body must not include `apiUrl`. The server returns `400` with the message 「客户端不再支持自定义 API URL，请在服务器环境变量中配置上游端点。」 (shown in the English interface as "Custom API URLs must be configured in the server environment."). You can only set API URLs through `DEEPSEEK_API_URL` or `GEMINI_API_URL`.
+</Warning>
+
+### Access verification
+
+When `CODE` is configured, every route except `/api/auth` and `/api/umami/script` requires a valid `ja_session` cookie. Otherwise it returns:
+
+```json
+{ "error": { "message": "请先通过密码验证" } }
+```
+
+### Error format
+
+On error, routes return the appropriate HTTP status code and an error in a uniform format:
+
+```json
+{ "error": { "message": "未提供API密钥，请在设置中配置API密钥或联系管理员配置服务器密钥" } }
+```
+
+### Streaming responses
+
+When streaming output is on, routes forward the upstream OpenAI-compatible Server-Sent Events stream directly, with a `Content-Type` of `text/event-stream`. When it's off, they return the upstream's complete JSON response.
+
+## Routes
+
+| Method | Route | Purpose |
+| --- | --- | --- |
+| `POST` | `/api/analyze` | Sentence segmentation and readings |
+| `POST` | `/api/translate` | Full translation |
+| `POST` | `/api/word-detail` | Details for a word or multi-word phrase |
+| `POST` | `/api/image-to-text` | Text extraction from images |
+| `POST` | `/api/chat` | AI Japanese Assistant chat |
+| `POST` | `/api/tts` | Speech synthesis |
+| `GET` | `/api/daily-sentence` | Get the sentence of the day |
+| `GET` / `POST` | `/api/auth` | Check verification status / verify the access password |
+| `GET` | `/api/umami/script` | Serve the Umami loader script based on the configuration |
+
+### POST /api/analyze
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `prompt` | `string` | Required. The analysis prompt, including the original text. |
+| `stream` | `boolean` | Whether to stream the response. Defaults to `false`. |
+
+The model returns structured JSON in the form `{"tokens": [{"word", "pos", "furigana"}]}`.
+
+### POST /api/translate
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `text` | `string` | Required. The Japanese text to translate. |
+| `stream` | `boolean` | Whether to stream the response. Defaults to `false`. |
+
+`X-App-Locale` determines the translation language. The translation keeps the paragraph and line-break structure of the original.
+
+### POST /api/word-detail
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `word` | `string` | Required. The selected word or phrase. |
+| `sentence` | `string` | Required. The sentence or context it appears in. |
+| `pos` | `string` | Required for a single word. The part of speech from the analysis. |
+| `furigana` | `string` | Optional. The reading from the analysis. |
+| `kind` | `string` | Optional. Set to `phrase` to analyze a multi-word phrase. |
+| `useStream` | `boolean` | Whether to stream the response. Defaults to `false`. |
+
+Word details return the fields `chineseTranslation`, `dictionaryForm`, `explanation`, `conjugation`, `example`, `exampleTranslation`, `pos`, and `furigana`. Phrase details also return `category` and `breakdown`.
+
+### POST /api/image-to-text
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `imageData` | `string` | Required. The image as a data URL, up to 8 MB. |
+| `prompt` | `string` | The extraction instruction. |
+| `stream` | `boolean` | Whether to stream the response. Defaults to `false`. |
+
+### POST /api/chat
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `messages` | `array` | Required. A message list in OpenAI format. Must not be empty. |
+| `useStream` | `boolean` | Whether to stream the response. Defaults to `true`. |
+
+The server prepends a Japanese learning assistant system prompt to the message list.
+
+### POST /api/tts
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `text` | `string` | Required. The text to read aloud. |
+| `provider` | `string` | `edge` (default) or `gemini`. |
+| `gender` | `string` | For Edge TTS. `female` (default) or `male`. |
+| `rate` | `number` | For Edge TTS. Speech rate. Defaults to `0`. |
+| `voice` | `string` | For Gemini TTS. `Kore` (default), `Puck`, `Zephyr`, `Aoede`, `Leda`, or `Charon`. |
+
+On success, it returns Base64-encoded audio:
+
+```json
+{ "audio": "<base64>", "mimeType": "audio/mp3" }
+```
+
+### GET /api/daily-sentence
+
+Returns today's sentence of the day (Japan time), including `date`, `text`, `tokens`, and `translation` in four languages. The response's `Cache-Control` expires at midnight Japan time. If the server has no usable key or generation fails, it returns `503`, and the frontend falls back to a built-in backup sentence.
+
+### /api/auth
+
+- `GET`: Returns `{ "requiresAuth": boolean, "authenticated": boolean }`.
+- `POST`: The request body is `{ "password": "..." }`. If the password is correct, it returns `{ "success": true }` and sets the session cookie. Otherwise it returns `401`.

@@ -1,0 +1,70 @@
+---
+title: "Deploy with an AI agent"
+description: "Send one sentence to Claude Code, Codex, or Cursor and let an AI coding assistant handle the deployment for you."
+icon: "robot"
+---
+
+The repository includes a deployment guide written specifically for AI coding assistants: [`docs/agent-deploy.md`](https://github.com/cokice/japanese-analyzer/blob/master/docs/agent-deploy.md). Just send the following sentence to Claude Code, Codex, Cursor, or Gemini CLI:
+
+```text
+Please read https://raw.githubusercontent.com/cokice/japanese-analyzer/master/docs/agent-deploy.md and follow its steps to deploy japanese-analyzer for me.
+```
+
+The AI assistant first asks where you want to deploy and which keys to use. It then handles installation and verification, and finally gives you the URL to access the app.
+
+## Deployment process
+
+<Steps>
+  <Step title="Ask everything up front">
+    The AI assistant asks you the following questions all at once:
+
+    1. **Where to deploy?**
+       - A. This Linux server, using Docker (recommended)
+       - B. Vercel
+       - C. Run locally only, for a trial
+    2. **DeepSeek API key**. If you don't have one, you can provide only a Gemini key.
+    3. **Optional items**: Gemini API key, access password `CODE`, and a domain (option A only).
+  </Step>
+
+  <Step title="Deploy">
+    - **Docker**: Checks Docker and the port, downloads the Compose file, writes `.env.production` with `600` permissions, and starts the container. If you provided a domain, it also sets up a reverse proxy and HTTPS.
+    - **Vercel**: You log in to Vercel and authorize it yourself. The AI assistant guides you through importing the repository and adding environment variables.
+    - **Local**: Clones the repository, installs dependencies, builds, and starts the app.
+  </Step>
+
+  <Step title="Verify">
+    The AI assistant checks the container status and logs, and uses `curl` to confirm a `200` response.
+  </Step>
+
+  <Step title="Hand off">
+    The AI assistant tells you:
+
+    - The access URL (IP and port, or your domain)
+    - If you set `CODE`, that you need to enter the password on first visit
+    - If you only configured a Gemini key, that you need to switch the provider to Gemini in **Settings**
+    - The commands for updating and viewing logs
+  </Step>
+</Steps>
+
+## Rules the AI assistant follows
+
+The guide requires the AI assistant to follow these rules to protect your server and keys:
+
+<CardGroup cols={2}>
+  <Card title="Protect keys" icon="key">
+    Asks only you for API keys. Never prints them, writes them to logs, or commits them to git.
+  </Card>
+  <Card title="Ask before acting" icon="hand">
+    Asks for your consent, and backs up the configuration first, before it deletes containers or files, takes or changes a port, installs system software, or modifies an existing Nginx, Caddy, or firewall configuration.
+  </Card>
+  <Card title="Never kill processes" icon="ban">
+    When a port is in use, tells you which process is using it and lets you decide whether to change the port or handle it yourself.
+  </Card>
+  <Card title="Stop on failure" icon="circle-stop">
+    When a step fails, reports the key error and its diagnosis instead of retrying blindly.
+  </Card>
+</CardGroup>
+
+<Tip>
+  You can also complete the same process manually by following the steps on the [Deployment](/en/deployment) page.
+</Tip>

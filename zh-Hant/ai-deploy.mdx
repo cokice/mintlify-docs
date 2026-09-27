@@ -1,0 +1,70 @@
+---
+title: "讓 AI Agent 部署"
+description: "把一句話交給 Claude Code、Codex 或 Cursor，讓 AI 程式設計助手幫你完成部署。"
+icon: "robot"
+---
+
+儲存庫提供了一份專門寫給 AI 程式設計助手的部署指南 [`docs/agent-deploy.md`](https://github.com/cokice/japanese-analyzer/blob/master/docs/agent-deploy.md)。你只需要把下面這句話傳給 Claude Code、Codex、Cursor 或 Gemini CLI：
+
+```text
+請閱讀 https://raw.githubusercontent.com/cokice/japanese-analyzer/master/docs/agent-deploy.md ，依照裡面的步驟幫我部署 japanese-analyzer。
+```
+
+AI 助手會先問你要部署到哪裡、要使用哪些 Key，然後完成安裝和驗證，最後告訴你存取網址。
+
+## 部署流程
+
+<Steps>
+  <Step title="一次問清楚">
+    AI 助手會一次問你以下問題：
+
+    1. **部署到哪裡？**
+       - A. 目前這台 Linux 伺服器，使用 Docker（建議）
+       - B. Vercel
+       - C. 只在本機執行試用
+    2. **DeepSeek API Key**。沒有的話，也可以只提供 Gemini Key。
+    3. **選填項目**：Gemini API Key、存取密碼 `CODE`、網域（僅 A 需要）。
+  </Step>
+
+  <Step title="執行部署">
+    - **Docker**：檢查 Docker 和連接埠，下載 Compose 檔案，寫入 `.env.production` 並設定 `600` 權限，然後啟動容器。如果提供了網域，會繼續設定反向 Proxy 和 HTTPS。
+    - **Vercel**：由你本人登入 Vercel 授權，AI 助手會引導你匯入儲存庫和新增環境變數。
+    - **本機**：複製儲存庫、安裝相依套件、建置並啟動。
+  </Step>
+
+  <Step title="驗收">
+    AI 助手會檢查容器狀態和日誌，並用 `curl` 確認傳回 `200`。
+  </Step>
+
+  <Step title="交付">
+    AI 助手會告訴你：
+
+    - 存取網址（IP 加連接埠，或網域）
+    - 如果設定了 `CODE`，第一次存取時需要輸入密碼
+    - 如果只設定了 Gemini Key，需要在**設定**中把服務商切換為 Gemini
+    - 更新和查看日誌的指令
+  </Step>
+</Steps>
+
+## AI 助手遵守的規則
+
+指南要求 AI 助手遵守以下規則，以保護你的伺服器和金鑰：
+
+<CardGroup cols={2}>
+  <Card title="保護金鑰" icon="key">
+    API Key 只向你索取。不印出、不寫入日誌、不提交到 git。
+  </Card>
+  <Card title="先問再做" icon="hand">
+    刪除容器或檔案、占用或更換連接埠、安裝系統軟體，或修改現有的 Nginx、Caddy 或防火牆設定之前，先徵得你的同意，並先備份設定。
+  </Card>
+  <Card title="不終止程序" icon="ban">
+    連接埠被占用時，告訴你是哪個程序在使用，由你決定要換連接埠還是自行處理。
+  </Card>
+  <Card title="失敗就停" icon="circle-stop">
+    某個步驟失敗時，提供關鍵錯誤訊息和判斷，不會一再盲目重試。
+  </Card>
+</CardGroup>
+
+<Tip>
+  你也可以依照[部署](/zh-Hant/deployment)頁面的步驟，手動完成相同的流程。
+</Tip>

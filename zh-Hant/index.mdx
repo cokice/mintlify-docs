@@ -1,0 +1,95 @@
+---
+title: "日本語文章解析"
+description: "日語句子，逐詞讀懂。輸入或貼上日語，查看斷詞、注音、詞性、詞義和整句翻譯。"
+icon: "language"
+---
+
+日本語文章解析（中文介面名稱為「日語文章解析」）是一款以 AI 輔助的日語句子解析 Web 應用程式。你輸入或貼上一段日語，它會逐詞標出假名、羅馬拼音和詞性，並在下方提供整句譯文。點選任何一個詞，你就能查看它在這句話中的意思、用法、活用和例句。
+
+<Info>
+  想先體驗？開啟[線上展示](https://nihongodemo.howen.ink/)，不必部署就能開始解析。
+</Info>
+
+![解析結果與辭典釋義](https://raw.githubusercontent.com/cokice/japanese-analyzer/master/docs/images/app-home.png)
+
+## 功能一覽
+
+### 讀句子
+
+<CardGroup cols={3}>
+  <Card title="句子解析" icon="spell-check" href="/zh-Hant/features/analysis">
+    逐詞標注假名、羅馬拼音和詞性，自動產生整句譯文。
+  </Card>
+  <Card title="單字詳解" icon="book-open" href="/zh-Hant/features/word-detail">
+    點一個詞，查看它在本句中的釋義、原形、活用和例句。
+  </Card>
+  <Card title="多詞圈選" icon="highlighter" href="/zh-Hant/features/word-detail#多詞圈選">
+    把語法結構、慣用語當成一個整體講解，被拆開的詞可以一鍵合併。
+  </Card>
+</CardGroup>
+
+### 更順手
+
+<CardGroup cols={2}>
+  <Card title="今日一句與最近紀錄" icon="calendar-days" href="/zh-Hant/features/daily-sentence">
+    首頁每天一句，依日本時間更新。最近的解析紀錄儲存在瀏覽器本機。
+  </Card>
+  <Card title="圖片辨識" icon="image" href="/zh-Hant/features/image-recognition">
+    上傳或直接貼上截圖，擷取其中的日語文字。
+  </Card>
+  <Card title="朗讀原文" icon="volume-high" href="/zh-Hant/features/text-to-speech">
+    使用 Edge TTS 或 Gemini TTS 朗讀，可調整語速和聲音。
+  </Card>
+  <Card title="AI 日語助手" icon="comments" href="/zh-Hant/features/ai-assistant">
+    配合目前的句子，繼續追問文法、單字和學習問題。
+  </Card>
+</CardGroup>
+
+### 介面
+
+- 支援简体中文、繁體中文、English 和 한국어。介面、翻譯和釋義會一起切換。
+- 支援淺色、深色和依照系統設定三種主題。電腦與手機都能使用。
+- 長文會自動分段解析。貼上網頁或 Markdown 時，會自動移除格式和連結。
+
+<Columns cols={2}>
+  <Frame caption="深色模式">
+    <img src="https://raw.githubusercontent.com/cokice/japanese-analyzer/master/docs/images/app-dark.png" alt="深色模式下的解析介面" />
+  </Frame>
+  <Frame caption="手機上的 AI 日語助手">
+    <img src="https://raw.githubusercontent.com/cokice/japanese-analyzer/master/docs/images/mobile-chat.png" alt="手機上的 AI 日語助手" />
+  </Frame>
+</Columns>
+
+## 模型
+
+| 用途 | 預設 | 可選 |
+| --- | --- | --- |
+| 解析、翻譯、釋義、AI 助手 | DeepSeek `deepseek-flash` | Gemini `gemini-flash-latest` / `gemini-flash-lite-latest` |
+| 圖片辨識 | 與所選文字模型相同 | — |
+| 朗讀 | Edge TTS | Gemini TTS（需要 Gemini API Key） |
+
+伺服器設定的 API Key 供所有訪客使用。使用者也可以在**設定**中填入自己的 Key。這組 Key 儲存在使用者自己的瀏覽器中，發出請求時會經由應用程式伺服器轉送給模型服務商。詳見[金鑰與隱私](/zh-Hant/privacy)。
+
+## 技術堆疊
+
+- Next.js 15（App Router）與 React 19
+- Tailwind CSS
+- 透過 OpenAI 相容介面呼叫 DeepSeek 與 Gemini
+- 授權條款：[AGPL-3.0-only](/zh-Hant/license)
+
+## 下一步
+
+<Columns cols={2}>
+  <Card title="快速開始" icon="rocket" href="/zh-Hant/quickstart">
+    在本機安裝相依套件，幾分鐘內就能執行應用程式。
+  </Card>
+  <Card title="部署" icon="server" href="/zh-Hant/deployment">
+    部署到 Vercel，或用 Docker 在自己的伺服器上執行。
+  </Card>
+  <Card title="讓 AI Agent 部署" icon="robot" href="/zh-Hant/ai-deploy">
+    用一句話交給 Claude Code、Codex 等 AI 程式設計助手完成部署。
+  </Card>
+  <Card title="設定" icon="sliders" href="/zh-Hant/configuration">
+    了解每個環境變數、模型和存取密碼。
+  </Card>
+</Columns>
