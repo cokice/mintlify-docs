@@ -1,0 +1,127 @@
+---
+title: "Development guide"
+description: "Learn the development commands, project structure, tests, continuous integration, and Docker image publishing rules."
+icon: "code"
+---
+
+The project is built with Next.js 15 (App Router), React 19, and Tailwind CSS, and written in TypeScript. Before you start developing, complete the local setup in [Quickstart](/en/quickstart).
+
+## Common commands
+
+```bash
+npm run dev          # Start the development server (Turbopack)
+npm test             # Run unit and API tests
+npm run lint         # Lint the code
+npx tsc --noEmit     # Type-check
+npm run build        # Production build
+npm start            # Run the production build
+```
+
+Before you commit changes, run the tests, linting, type checking, and the production build in that order.
+
+### Tests
+
+`npm test` runs `tests/api.test.ts` and `tests/i18n.test.ts`. `api.test.ts` imports the other test files, so a single command runs every test. When debugging, you can also run a single file with `tsx`:
+
+```bash
+npx tsx tests/pastedText.test.ts
+```
+
+| Test file | What it covers |
+| --- | --- |
+| `api.test.ts` | API routes, provider configuration, and request validation. Also imports the other tests. |
+| `i18n.test.ts` | Message completeness (every key has three translations with matching placeholders), localized error messages, and the response requirements for each language |
+| `analysisHistory.test.ts` | Deduplication, ordering, and the size limit of recent texts |
+| `analysisUrls.test.ts` | Protecting and restoring links during analysis |
+| `dailySentence.test.ts` | Generating and validating the sentence of the day |
+| `localOutput.test.ts` | Romaji conversion, streaming output parsing, and model response parsing |
+| `pastedText.test.ts` | Cleaning up formatting in pasted web pages and Markdown |
+| `phraseRange.test.ts` | Multi-word selection and merging |
+| `readingLayout.test.ts` | Grouping words and punctuation in the furigana layout |
+| `requestMetrics.test.ts` | Umami request metrics and error categories |
+| `wordDetailContext.test.ts` | Extracting context for word details in long texts |
+| `wordDetailDictionary.test.ts` | Parsing structured word detail results |
+
+## Project structure
+
+```text
+app/
+  api/                # Next.js API routes (analysis, translation, definitions, image recognition, TTS, chat, and more)
+  api/_utils/         # Provider config, OpenAI-compatible proxy, session verification, timeouts, and sentence-of-the-day generation
+  components/         # Input area, analysis results, word details, translation, AI assistant, settings modal, and more
+  contexts/           # Interface language and theme
+  hooks/              # Word details, multi-word selection, and recent texts
+  i18n/               # Interface languages and messages (keyed by the Simplified Chinese source text)
+  lib/                # Model list and prompts for each feature
+  services/api.ts     # Frontend API calls, streaming parsing, and long-text chunking
+  utils/              # Utilities for chunking, romaji, paste cleanup, analytics, and more
+components/ui/        # Shared UI components
+docs/                 # Screenshots and the AI agent deployment guide
+tests/                # Tests
+```
+
+### Add interface messages
+
+Messages are defined in `app/i18n/messages.ts`. The Simplified Chinese source text is the key, and the other three languages are the values:
+
+```ts app/i18n/messages.ts
+"历史记录": {"zh-TW": "歷史紀錄", "en": "History", "ko": "기록"},
+```
+
+Use it in a component with `t("历史记录")`. When you add a message, provide all three translations, `zh-TW`, `en`, and `ko`. `i18n.test.ts` checks for completeness.
+
+## Continuous integration
+
+`.github/workflows/docker.yml` runs on pushes to any branch, pushes of `v*` tags, pull requests, and manual triggers:
+
+<Steps>
+  <Step title="Verify">
+    Runs `npm ci`, `npm test`, `npm run lint`, and `npm run build` in order, using Node.js 22.
+  </Step>
+  <Step title="Build the image">
+    After verification passes, builds the Docker image. Regular branches and pull requests build only `linux/amd64`, to check that the image builds successfully.
+  </Step>
+  <Step title="Publish the image">
+    On pushes to the default branch, the `howendev/dev` branch, or any tag, builds both `linux/amd64` and `linux/arm64`. If Docker Hub secrets are configured, it pushes the multi-architecture image.
+  </Step>
+</Steps>
+
+| Architecture | Build runner |
+| --- | --- |
+| `linux/amd64` | `ubuntu-latest` |
+| `linux/arm64` | `ubuntu-24.04-arm` |
+
+### Image tags
+
+| Trigger | Generated tags |
+| --- | --- |
+| Push to the default branch | `latest`, `<branch-name>`, `sha-<short-commit>` |
+| Push to `howendev/dev` | `latest`, `howendev-dev`, `sha-<short-commit>` |
+| Push a tag | `<tag-name>`, `sha-<short-commit>` |
+
+### Docker Hub secrets
+
+In your GitHub repository, open **Settings** → **Secrets and variables** → **Actions** and add:
+
+| Secret | Description |
+| --- | --- |
+| `DOCKERHUB_USERNAME` | Your Docker Hub username. |
+| `DOCKERHUB_TOKEN` | A Docker Hub personal access token. Don't use your account password. |
+
+If these two secrets aren't configured, the workflow only builds the image without pushing it and prints a warning.
+
+<Warning>
+  Don't bake runtime secrets into the Docker image. Inject `DEEPSEEK_API_KEY`, `GEMINI_API_KEY`, `CODE`, and the Umami settings when you run the container, through `.env.production` or `-e` flags.
+</Warning>
+
+## Docker image
+
+The `Dockerfile` uses a multi-stage build based on `node:22-alpine` with Next.js standalone output:
+
+- The runtime stage runs as the non-root user `nextjs`.
+- It listens on `0.0.0.0:3002` by default.
+- The image includes the license files `LICENSE`, `NOTICE`, `LICENSING.md`, and `LICENSES/`.
+
+## Contributing
+
+[Issues](https://github.com/cokice/japanese-analyzer/issues) and pull requests are welcome. License new contributions under terms compatible with AGPL-3.0-only, and keep the notices of any third-party code you bring in. For details, see [License](/en/license).

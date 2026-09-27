@@ -1,0 +1,151 @@
+---
+title: "內部 API"
+description: "應用程式前端呼叫的伺服器端 API 路由、請求參數和通用慣例。"
+icon: "plug"
+---
+
+應用程式的伺服器端邏輯都位於 `app/api/` 下的 Next.js API 路由中。前端透過這些路由呼叫模型服務商，伺服器端則負責注入 Key、選擇介面位址和調整請求參數。
+
+<Note>
+  這些路由是應用程式的內部介面，主要供前端使用，參數可能隨版本變動。如果你要在其他程式中呼叫，請以儲存庫中的原始碼為準。
+</Note>
+
+## 通用慣例
+
+### 請求標頭
+
+| 請求標頭 | 說明 |
+| --- | --- |
+| `Content-Type: application/json` | 所有 `POST` 請求都使用 JSON 請求本文。 |
+| `X-App-Locale` | 回答語言：`zh-CN`（預設）、`zh-TW`、`en` 或 `ko`。會影響譯文、釋義和對話回答的語言。 |
+| `Authorization: Bearer <key>` | 選填。使用者自己的 API Key。省略時使用伺服器設定的 Key。 |
+
+### 通用參數
+
+與模型相關的路由都接受以下參數：
+
+| 參數 | 型別 | 說明 |
+| --- | --- | --- |
+| `provider` | `string` | `deepseek`（預設）或 `gemini`。無效值會視為 `deepseek`。 |
+| `model` | `string` | 模型名稱。不在可用清單中時，改用該服務商的預設模型。 |
+
+<Warning>
+  請求本文中不能包含 `apiUrl`。伺服器端會傳回 `400`，並提示「客户端不再支持自定义 API URL，请在服务器环境变量中配置上游端点。」介面位址只能透過 `DEEPSEEK_API_URL` 或 `GEMINI_API_URL` 設定。
+</Warning>
+
+### 存取驗證
+
+設定了 `CODE` 時，除了 `/api/auth` 和 `/api/umami/script` 以外，其他路由都要求請求帶有有效的 `ja_session` Cookie，否則會傳回：
+
+```json
+{ "error": { "message": "请先通过密码验证" } }
+```
+
+### 錯誤格式
+
+發生錯誤時，路由會傳回對應的 HTTP 狀態碼和統一格式的錯誤：
+
+```json
+{ "error": { "message": "未提供API密钥，请在设置中配置API密钥或联系管理员配置服务器密钥" } }
+```
+
+- `message` 一律是簡體中文原文，不受 `X-App-Locale` 影響。前端會把已知的錯誤訊息翻譯成目前的介面語言後再顯示。
+- 模型服務商傳回的原始錯誤訊息會原樣轉送，前端不會翻譯。
+- 等待模型服務商超過 60 秒時，非串流請求會傳回 `504` 和「上游接口请求超时，请稍后重试。」
+
+### 串流回應
+
+開啟串流輸出時，路由會直接轉送上游的 OpenAI 相容 Server-Sent Events 串流，`Content-Type` 為 `text/event-stream`。關閉時，則傳回上游的完整 JSON 回應。
+
+串流輸出超過 90 秒沒有新資料時，伺服器端會在串流中送出一則錯誤事件，然後結束連線：
+
+```text
+data: {"error":{"message":"上游流式响应空闲超时，请重试。"}}
+```
+
+## 路由清單
+
+| 方法 | 路由 | 用途 |
+| --- | --- | --- |
+| `POST` | `/api/analyze` | 句子斷詞與注音 |
+| `POST` | `/api/translate` | 整句翻譯 |
+| `POST` | `/api/word-detail` | 單字或多詞短語詳解 |
+| `POST` | `/api/image-to-text` | 圖片文字擷取 |
+| `POST` | `/api/chat` | AI 日語助手對話 |
+| `POST` | `/api/tts` | 語音合成 |
+| `GET` | `/api/daily-sentence` | 取得今日一句 |
+| `GET` / `POST` | `/api/auth` | 查詢驗證狀態 / 驗證存取密碼 |
+| `GET` | `/api/umami/script` | 依設定輸出 Umami 載入指令碼 |
+
+### POST /api/analyze
+
+| 參數 | 型別 | 說明 |
+| --- | --- | --- |
+| `prompt` | `string` | 必填。包含原文的解析提示詞。 |
+| `stream` | `boolean` | 是否以串流傳回。預設為 `false`。 |
+
+模型會傳回形如 `{"tokens": [{"word", "pos", "furigana"}]}` 的結構化 JSON。
+
+### POST /api/translate
+
+| 參數 | 型別 | 說明 |
+| --- | --- | --- |
+| `text` | `string` | 必填。要翻譯的日語原文。 |
+| `stream` | `boolean` | 是否以串流傳回。預設為 `false`。 |
+
+譯文語言由 `X-App-Locale` 決定，並保留原文的段落和換行結構。
+
+### POST /api/word-detail
+
+| 參數 | 型別 | 說明 |
+| --- | --- | --- |
+| `word` | `string` | 必填。所選的詞或短語。 |
+| `sentence` | `string` | 必填。所在的句子或上下文。 |
+| `pos` | `string` | 查詢單字時必填。解析得到的詞性。 |
+| `furigana` | `string` | 選填。解析得到的讀音。 |
+| `kind` | `string` | 選填。設為 `phrase` 時會以多詞短語解析。 |
+| `useStream` | `boolean` | 是否以串流傳回。預設為 `false`。 |
+
+單字詳解會傳回 `chineseTranslation`、`dictionaryForm`、`explanation`、`conjugation`、`example`、`exampleTranslation`、`pos` 和 `furigana` 欄位。短語詳解會另外傳回 `category` 和 `breakdown`。
+
+### POST /api/image-to-text
+
+| 參數 | 型別 | 說明 |
+| --- | --- | --- |
+| `imageData` | `string` | 必填。圖片的 Data URL，不能超過 8 MB。 |
+| `prompt` | `string` | 擷取指示。 |
+| `stream` | `boolean` | 是否以串流傳回。預設為 `false`。 |
+
+### POST /api/chat
+
+| 參數 | 型別 | 說明 |
+| --- | --- | --- |
+| `messages` | `array` | 必填。OpenAI 格式的訊息清單，不能為空。 |
+| `useStream` | `boolean` | 是否以串流傳回。預設為 `true`。 |
+
+伺服器端會在訊息清單前加入日語學習助手的系統提示詞。
+
+### POST /api/tts
+
+| 參數 | 型別 | 說明 |
+| --- | --- | --- |
+| `text` | `string` | 必填。要朗讀的文字。 |
+| `provider` | `string` | `edge`（預設）或 `gemini`。 |
+| `gender` | `string` | Edge TTS 使用。`female`（預設）或 `male`。 |
+| `rate` | `number` | Edge TTS 使用。語速，預設為 `0`。 |
+| `voice` | `string` | Gemini TTS 使用。`Kore`（預設）、`Puck`、`Zephyr`、`Aoede`、`Leda` 或 `Charon`。 |
+
+成功時會傳回 Base64 編碼的音訊：
+
+```json
+{ "audio": "<base64>", "mimeType": "audio/mp3" }
+```
+
+### GET /api/daily-sentence
+
+傳回當天（日本時間）的今日一句，包含 `date`、`text`、`tokens` 和四種語言的 `translation`。回應的 `Cache-Control` 有效期限到日本時間午夜零時。伺服器沒有可用的 Key 或產生失敗時會傳回 `503`，前端則改用內建備用句。
+
+### /api/auth
+
+- `GET`：傳回 `{ "requiresAuth": boolean, "authenticated": boolean }`。
+- `POST`：請求本文為 `{ "password": "..." }`。密碼正確時傳回 `{ "success": true }` 並寫入工作階段 Cookie，錯誤時傳回 `401`。

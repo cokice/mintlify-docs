@@ -1,0 +1,127 @@
+---
+title: "개발 가이드"
+description: "개발 명령, 프로젝트 구조, 테스트, 지속적 통합, Docker 이미지 배포 규칙을 알아봅니다."
+icon: "code"
+---
+
+이 프로젝트는 Next.js 15(App Router), React 19, Tailwind CSS를 기반으로 하며 TypeScript로 작성되었습니다. 개발을 시작하기 전에 [빠른 시작](/ko/quickstart)에 따라 로컬 구성을 마치세요.
+
+## 자주 쓰는 명령
+
+```bash
+npm run dev          # 개발 서버 시작(Turbopack)
+npm test             # 단위 테스트와 API 테스트 실행
+npm run lint         # 코드 검사
+npx tsc --noEmit     # 타입 검사
+npm run build        # 프로덕션 빌드
+npm start            # 프로덕션 빌드 실행
+```
+
+변경 사항을 커밋하기 전에 테스트, 코드 검사, 타입 검사, 프로덕션 빌드를 차례로 실행하는 것을 권장합니다.
+
+### 테스트
+
+`npm test`는 `tests/api.test.ts`와 `tests/i18n.test.ts`를 실행합니다. `api.test.ts`가 나머지 테스트 파일을 가져오므로 명령 하나로 모든 테스트를 실행할 수 있습니다. 디버깅할 때는 `tsx`로 특정 파일만 실행할 수도 있습니다.
+
+```bash
+npx tsx tests/pastedText.test.ts
+```
+
+| 테스트 파일 | 검사 범위 |
+| --- | --- |
+| `api.test.ts` | API 라우트, 제공업체 구성, 요청 검증. 다른 테스트도 가져옵니다 |
+| `i18n.test.ts` | 문구 완전성(모든 키에 세 가지 번역이 있고 자리 표시자가 일치하는지), 오류 메시지 현지화, 언어별 답변 요구 사항 |
+| `analysisHistory.test.ts` | 최근 기록의 중복 제거, 정렬, 개수 상한 |
+| `analysisUrls.test.ts` | 분석 시 링크 보호와 복원 |
+| `dailySentence.test.ts` | 오늘의 문장 생성과 검증 |
+| `localOutput.test.ts` | 로마자 변환, 스트리밍 출력 파싱, 모델 응답 파싱 |
+| `pastedText.test.ts` | 웹 페이지와 Markdown 붙여넣기 시 서식 정리 |
+| `phraseRange.test.ts` | 여러 단어 선택과 합치기 |
+| `readingLayout.test.ts` | 후리가나 배치에서 단어와 문장 부호 그룹화 |
+| `requestMetrics.test.ts` | Umami 요청 지표와 오류 분류 |
+| `wordDetailContext.test.ts` | 긴 글에서 단어 상세 설명의 문맥 추출 |
+| `wordDetailDictionary.test.ts` | 단어 상세 설명 구조화 결과 파싱 |
+
+## 프로젝트 구조
+
+```text
+app/
+  api/                # Next.js API 라우트(분석, 번역, 뜻풀이, 이미지 인식, 음성 읽기, 대화 등)
+  api/_utils/         # 제공업체 구성, OpenAI 호환 프록시, 세션 검증, 시간 제한, 오늘의 문장 생성
+  components/         # 입력 영역, 분석 결과, 단어 상세, 번역, AI 도우미, 설정 창 등
+  contexts/           # 화면 언어와 테마
+  hooks/              # 단어 상세, 여러 단어 선택, 최근 기록
+  i18n/               # 화면 언어와 문구(간체 중국어 원문을 키로 사용)
+  lib/                # 모델 목록과 기능별 프롬프트
+  services/api.ts     # 프런트엔드 API 호출, 스트리밍 파싱, 긴 글 분할
+  utils/              # 분할, 로마자, 붙여넣기 정리, 통계 등 유틸리티 함수
+components/ui/        # 공용 UI 컴포넌트
+docs/                 # 스크린샷과 AI 에이전트 배포 가이드
+tests/                # 테스트
+```
+
+### 화면 문구 추가
+
+문구는 `app/i18n/messages.ts`에 정의되어 있습니다. 간체 중국어 원문이 키이고, 나머지 세 언어가 값입니다.
+
+```ts app/i18n/messages.ts
+"历史记录": {"zh-TW": "歷史紀錄", "en": "History", "ko": "기록"},
+```
+
+컴포넌트에서는 `t("历史记录")`로 사용합니다. 문구를 새로 추가할 때는 `zh-TW`, `en`, `ko` 세 가지 번역을 모두 제공하세요. `i18n.test.ts`가 완전성을 검사합니다.
+
+## 지속적 통합
+
+`.github/workflows/docker.yml`은 모든 브랜치에 푸시할 때, `v*` 태그를 푸시할 때, Pull Request를 제출할 때, 수동으로 실행할 때 동작합니다.
+
+<Steps>
+  <Step title="검증">
+    Node.js 22로 `npm ci`, `npm test`, `npm run lint`, `npm run build`를 차례로 실행합니다.
+  </Step>
+  <Step title="이미지 빌드">
+    검증을 통과하면 Docker 이미지를 빌드합니다. 일반 브랜치와 Pull Request에서는 이미지가 빌드되는지 확인하기 위해 `linux/amd64`만 빌드합니다.
+  </Step>
+  <Step title="이미지 게시">
+    기본 브랜치, `howendev/dev` 브랜치 또는 임의의 태그에 푸시하면 `linux/amd64`와 `linux/arm64`를 함께 빌드하고, Docker Hub secrets가 설정되어 있으면 멀티 아키텍처 이미지를 푸시합니다.
+  </Step>
+</Steps>
+
+| 아키텍처 | 빌드 환경 |
+| --- | --- |
+| `linux/amd64` | `ubuntu-latest` |
+| `linux/arm64` | `ubuntu-24.04-arm` |
+
+### 이미지 태그
+
+| 트리거 | 생성되는 태그 |
+| --- | --- |
+| 기본 브랜치에 푸시 | `latest`, `<브랜치 이름>`, `sha-<짧은 커밋 해시>` |
+| `howendev/dev`에 푸시 | `latest`, `howendev-dev`, `sha-<짧은 커밋 해시>` |
+| 태그 푸시 | `<태그 이름>`, `sha-<짧은 커밋 해시>` |
+
+### Docker Hub secrets
+
+GitHub 저장소에서 **Settings** → **Secrets and variables** → **Actions**를 열고 다음을 추가하세요.
+
+| Secret | 설명 |
+| --- | --- |
+| `DOCKERHUB_USERNAME` | Docker Hub 사용자 이름. |
+| `DOCKERHUB_TOKEN` | Docker Hub Personal Access Token. 계정 비밀번호를 사용하지 마세요. |
+
+두 secrets를 설정하지 않으면 워크플로는 이미지를 빌드만 하고 푸시하지 않으며 경고를 하나 출력합니다.
+
+<Warning>
+  런타임 비밀 값을 Docker 이미지에 넣지 마세요. `DEEPSEEK_API_KEY`, `GEMINI_API_KEY`, `CODE`, Umami 구성은 컨테이너를 실행할 때 `.env.production`이나 `-e` 매개변수로 주입해야 합니다.
+</Warning>
+
+## Docker 이미지
+
+`Dockerfile`은 `node:22-alpine` 기반 멀티 스테이지 빌드이며 Next.js standalone 출력을 사용합니다.
+
+- 실행 단계에서는 root가 아닌 사용자 `nextjs`로 실행합니다.
+- 기본적으로 `0.0.0.0:3002`에서 수신합니다.
+- 이미지에는 `LICENSE`, `NOTICE`, `LICENSING.md`, `LICENSES/` 라이선스 파일이 포함됩니다.
+
+## 기여
+
+[Issue](https://github.com/cokice/japanese-analyzer/issues)와 Pull Request를 환영합니다. 새 기여에는 AGPL-3.0-only와 호환되는 라이선스를 사용하고, 가져온 서드 파티 코드의 고지를 유지하세요. 자세한 내용은 [라이선스](/ko/license)를 참고하세요.

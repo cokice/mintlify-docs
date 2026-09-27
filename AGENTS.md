@@ -17,6 +17,13 @@
 {/* Add product-specific terms and preferred usage */}
 {/* Example: Use "workspace" not "project", "member" not "user" */}
 
+## Localization
+
+- The site is published in the same four languages as the app: Simplified Chinese (default, root directory, `zh-Hans`), Traditional Chinese (`zh-Hant/`), English (`en/`) and Korean (`ko/`).
+- Every page exists in all four languages at the same relative path. When you add, change or remove a page, update all four versions and the matching `navigation.languages` entry in `docs.json`.
+- Internal links in a translated page must keep its language prefix, for example `/en/features/analysis`.
+- UI labels must match the app's own translations in `app/i18n/messages.ts` of [japanese-analyzer](https://github.com/cokice/japanese-analyzer). Use Taiwan terminology for `zh-Hant`.
+
 ## Style preferences
 
 {/* Add any project-specific style rules below */}

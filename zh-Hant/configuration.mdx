@@ -1,0 +1,106 @@
+---
+title: "設定"
+description: "設定模型服務商、上游介面位址、存取密碼和 Umami 統計。"
+icon: "sliders"
+---
+
+應用程式的所有伺服器端設定都透過環境變數完成。本機開發使用 `.env.local`，Docker 部署使用 `.env.production`，Vercel 則在專案的 **Settings** → **Environment Variables** 中設定。
+
+## 環境變數
+
+| 變數 | 是否必填 | 用途 |
+| --- | --- | --- |
+| `DEEPSEEK_API_KEY` | 建議 | DeepSeek API Key。用於預設的解析、翻譯、釋義、圖片辨識、AI 助手和今日一句。 |
+| `GEMINI_API_KEY` | 選填 | Gemini API Key。用於 Gemini 文字模型、圖片辨識和 Gemini TTS。 |
+| `DEEPSEEK_API_URL` | 選填 | DeepSeek 的 OpenAI 相容介面位址。留空時使用官方位址。 |
+| `GEMINI_API_URL` | 選填 | Gemini 的 OpenAI 相容介面位址。留空時使用官方位址。 |
+| `CODE` | 選填 | 存取密碼。留空時不需要密碼。 |
+| `NEXT_PUBLIC_UMAMI_SRC` | 選填 | Umami 統計指令碼位址。 |
+| `NEXT_PUBLIC_UMAMI_WEBSITE_ID` | 選填 | Umami Website ID。需要與 `NEXT_PUBLIC_UMAMI_SRC` 一起填寫。 |
+
+<Info>
+  `DEEPSEEK_API_KEY` 和 `GEMINI_API_KEY` 至少要填一個。兩個都沒填時，訪客必須在**設定**中填入自己的 Key 才能使用，首頁的今日一句也會改用內建備用句。
+</Info>
+
+完整範例：
+
+```env .env.production
+# DeepSeek：預設文字服務商，也負責圖片辨識
+DEEPSEEK_API_KEY=your_deepseek_api_key
+DEEPSEEK_API_URL=https://api.deepseek.com/chat/completions
+
+# Gemini：選填，啟用 Gemini 模型和 Gemini TTS
+GEMINI_API_KEY=your_gemini_api_key
+GEMINI_API_URL=https://generativelanguage.googleapis.com/v1beta/openai/chat/completions
+
+# 選填：存取密碼
+CODE=
+
+# 選填：Umami 統計
+NEXT_PUBLIC_UMAMI_SRC=
+NEXT_PUBLIC_UMAMI_WEBSITE_ID=
+```
+
+## 模型服務商
+
+應用程式透過 OpenAI 相容的 Chat Completions 介面呼叫模型。
+
+| 服務商 | 可用模型 | 官方介面位址 |
+| --- | --- | --- |
+| DeepSeek（預設） | `deepseek-flash` | `https://api.deepseek.com/chat/completions` |
+| Gemini | `gemini-flash-latest`（預設）、`gemini-flash-lite-latest` | `https://generativelanguage.googleapis.com/v1beta/openai/chat/completions` |
+
+伺服器端會依服務商自動調整請求參數：
+
+- **DeepSeek**：使用 `json_object` 格式傳回結構化結果，並關閉思考模式。
+- **Gemini**：使用嚴格的 JSON Schema 傳回結構化結果。`gemini-flash-latest` 使用 `low` 推理等級，`gemini-flash-lite-latest` 使用 `minimal` 推理等級。
+
+### 使用自訂介面位址
+
+如果你透過 Proxy 或相容閘道存取模型服務商，可以設定 `DEEPSEEK_API_URL` 或 `GEMINI_API_URL`。位址必須是完整的 Chat Completions 端點，而不是 Base URL。
+
+```env
+DEEPSEEK_API_URL=https://your-gateway.example.com/v1/chat/completions
+```
+
+<Warning>
+  介面位址只能在伺服器環境變數中設定。瀏覽器請求中若帶有自訂 API URL，伺服器端會直接拒絕，以免應用程式被當成任意位址的轉送 Proxy。
+</Warning>
+
+### 請求逾時
+
+| 情境 | 逾時時間 |
+| --- | --- |
+| 等待上游介面回應 | 60 秒 |
+| 串流輸出中兩段內容之間的最長間隔 | 90 秒 |
+| 上游傳回錯誤後，讀取錯誤詳情 | 15 秒 |
+
+## 存取密碼
+
+設定 `CODE` 後，訪客開啟網站時需要先輸入存取密碼。
+
+```env
+CODE=choose-a-private-password
+```
+
+- 驗證通過後，伺服器端會寫入一個 HttpOnly 工作階段 Cookie `ja_session`，有效期限 7 天。
+- 工作階段權杖以 `CODE` 作為金鑰，使用 HMAC-SHA256 簽署。修改 `CODE` 後，所有已登入的工作階段會立即失效。
+- 未通過驗證時，解析、翻譯、釋義、圖片辨識、朗讀、對話和今日一句等介面都會傳回 `401`。
+- 正式環境中的 Cookie 帶有 `Secure` 標記，需要透過 HTTPS 存取。
+
+<Note>
+  `CODE` 適合簡單的私人部署，用來防止陌生人消耗你的 API 額度。它無法取代完整的帳號與權限系統。
+</Note>
+
+## Umami 統計
+
+同時填寫以下兩個變數後，應用程式會載入 Umami 統計指令碼：
+
+```env
+NEXT_PUBLIC_UMAMI_SRC=https://cloud.umami.is/script.js
+NEXT_PUBLIC_UMAMI_WEBSITE_ID=your_umami_website_id
+```
+
+任一變數為空時，應用程式不會載入 Umami。這兩個變數由伺服器端在執行階段讀取，修改後重新啟動服務即可生效，Docker 部署不需要重新建置映像檔。
+
+統計只記錄功能使用量，不記錄任何內容。詳見[金鑰與隱私](/zh-Hant/privacy#umami-統計)。

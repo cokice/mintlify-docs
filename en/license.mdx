@@ -1,0 +1,51 @@
+---
+title: "License"
+description: "The project is licensed under AGPL-3.0-only. Earlier MIT releases keep their original license."
+icon: "scale-balanced"
+---
+
+Starting from the license change commit, japanese-analyzer as a whole is distributed under the [GNU Affero General Public License v3.0 only (AGPL-3.0-only)](https://github.com/cokice/japanese-analyzer/blob/master/LICENSE). The project adds no extra restrictions, such as a ban on commercial use or a required commercial license.
+
+## Version boundary
+
+| Tag | Meaning |
+| --- | --- |
+| `mit-final` | The last snapshot licensed entirely under MIT before the change. It always points to commit `fb57ddc`. |
+| `agpl-3.0-start` | The first commit licensed entirely under AGPL-3.0-only. |
+
+Code released under MIT at `mit-final` and earlier keeps its MIT license. The new license doesn't retroactively revoke the earlier MIT grant. The original copyright and license text are kept in [`LICENSES/MIT-legacy.txt`](https://github.com/cokice/japanese-analyzer/blob/master/LICENSES/MIT-legacy.txt).
+
+## What you can do
+
+<CardGroup cols={2}>
+  <Card title="Personal and commercial use" icon="circle-check">
+    The AGPL allows both personal and commercial use. You don't need to buy a commercial license from the project.
+  </Card>
+  <Card title="Modify and distribute" icon="code-fork">
+    You can modify and distribute the code, but you must meet the AGPL's source code obligations.
+  </Card>
+</CardGroup>
+
+## What you must do
+
+<Steps>
+  <Step title="Provide source when you distribute">
+    When you distribute an executable version, such as a Docker image, provide the corresponding source code under Section 6 of the AGPL. Keep the license and copyright notices.
+  </Step>
+  <Step title="Provide source when you offer a network service">
+    When you modify this program and offer it as a service to others over a network, Section 13 of the AGPL requires you to prominently offer your users a way to get the corresponding source code of your modified version free of charge.
+  </Step>
+  <Step title="Update the source link">
+    The app interface has a GitHub source link in the top-right corner. When you deploy a modified version, point it to the source code of the version you actually run. Don't keep an upstream link that doesn't reflect your changes.
+  </Step>
+</Steps>
+
+<Warning>
+  The corresponding source code must match the version you actually run, including your changes and your build, install, and run scripts. Linking only to an upstream repository that lacks your changes doesn't meet the requirement. Don't put deployment credentials such as API keys or passwords in the source package. Provide a configuration template instead.
+</Warning>
+
+## Contributing
+
+License new contributions under terms compatible with the current project, and keep the notices of any third-party code you bring in. The project doesn't require contributors to assign copyright. Third-party materials such as dependencies and fonts keep their own licenses.
+
+For the full details, see [`LICENSING.md`](https://github.com/cokice/japanese-analyzer/blob/master/LICENSING.md) and [`NOTICE`](https://github.com/cokice/japanese-analyzer/blob/master/NOTICE) in the repository. This page is only an explanation. The [AGPL text](https://github.com/cokice/japanese-analyzer/blob/master/LICENSE) is authoritative.

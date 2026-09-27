@@ -60,7 +60,8 @@ icon: "volume-high"
 | --- | --- |
 | 请先输入文本 | 输入框为空。先输入要朗读的日语。 |
 | 未提供 API 密钥 | 使用 Gemini TTS 但没有可用的 Gemini Key。填写 Key，或切换回 Edge TTS。 |
-| 上游 TTS 请求超时 | 语音服务 60 秒内没有响应。缩短原文后重试。 |
+| 上游 TTS 请求超时，请稍后重试。 | 语音服务 60 秒内没有响应。缩短原文后重试。 |
+| Edge TTS 请求失败（HTTP 状态码） | Edge TTS 语音接口返回了错误。稍后重试，或切换到 Gemini TTS。 |
 | Edge TTS 返回空音频 | 语音服务没有返回音频。稍后重试，或切换到 Gemini TTS。 |
 
 <Note>

@@ -1,0 +1,93 @@
+---
+title: "Troubleshooting"
+description: "Fix common issues with deployment, keys, analysis, text-to-speech, and the sentence of the day."
+icon: "circle-question"
+---
+
+<Info>
+  Error messages appear in your interface language. This page quotes them as they appear in the English interface. Raw error messages from the model provider, such as `HTTP 429: ...`, are not translated.
+</Info>
+
+## Deployment and access
+
+<AccordionGroup>
+  <Accordion title="The page loads, but analysis shows “No API key provided”">
+    The server has no valid `DEEPSEEK_API_KEY` or `GEMINI_API_KEY`, and no key is entered in the browser settings either.
+
+    - Docker: After editing `.env.production`, run `docker compose up -d` to recreate the container.
+    - Vercel: After adding the variable under **Settings** → **Environment Variables**, redeploy.
+    - Local development: After editing `.env.local`, restart `npm run dev`.
+  </Accordion>
+
+  <Accordion title="Only a Gemini key is configured, and analysis still fails">
+    The app uses DeepSeek by default. Open **Settings**, switch **AI provider** to **Gemini**, then click **Save settings**.
+  </Accordion>
+
+  <Accordion title="curl works on the server itself, but the site is unreachable from outside">
+    Your cloud provider's security group or the system firewall hasn't opened the port. Open `3002`, or open `80` and `443` after you set up a reverse proxy.
+  </Accordion>
+
+  <Accordion title="The HTTPS certificate request fails">
+    The domain doesn't point to the server yet, or port `80` isn't open. Confirm that the A record has taken effect, then try again.
+  </Accordion>
+
+  <Accordion title="I set an access password, but I have to enter it every time">
+    In production, the session cookie has the `Secure` flag and can only be saved over HTTPS. Set up HTTPS for your site. Changing `CODE` also invalidates all existing sessions.
+  </Accordion>
+</AccordionGroup>
+
+## Analysis and translation
+
+<AccordionGroup>
+  <Accordion title="Streaming output keeps getting cut off">
+    Turn off **Streaming output** in **Settings** to get the complete result all at once. If you use an Nginx reverse proxy, also make sure you set `proxy_buffering off`.
+  </Accordion>
+
+  <Accordion title="The message says the analysis did not preserve the original text">
+    The tokens the model returned don't join back into the original text. Analyze it again, or switch to another model version.
+  </Accordion>
+
+  <Accordion title="The message says the output was truncated by the model (finish_reason: length)">
+    The output exceeded the model's length limit. Shorten the text, or analyze it in several parts.
+  </Accordion>
+
+  <Accordion title="The message says “The upstream API timed out”">
+    The model provider didn't respond within 60 seconds. Check the network between your server and the model provider, then try again later.
+  </Accordion>
+
+  <Accordion title="The message says “The upstream stream stopped responding”">
+    Streaming output received no new content for more than 90 seconds. Analyze the text again. If this happens often, turn off **Streaming output** in **Settings**.
+  </Accordion>
+
+  <Accordion title="Segmentation is wrong and one word is split into several pieces">
+    Select those words. If the app determines that they form one word, click **Merge into one word**. For details, see [Word details and multi-word selection](/en/features/word-detail#merge-split-words).
+  </Accordion>
+</AccordionGroup>
+
+## Other features
+
+<AccordionGroup>
+  <Accordion title="The sentence of the day on the home page only rotates among a few fixed sentences">
+    The server has no usable API key, or its outbound network can't reach the model provider, so the app is using the 7 built-in backup sentences. The sentence of the day uses only the server key, never keys entered in the browser.
+  </Accordion>
+
+  <Accordion title="Gemini TTS doesn't read text aloud">
+    Gemini TTS requires a Gemini API key. Set `GEMINI_API_KEY` on the server, or enter a Gemini key in **Settings**. You can also switch back to Edge TTS, which needs no key.
+  </Accordion>
+
+  <Accordion title="Recent texts disappear after a refresh">
+    Your browser has local storage disabled or is in private browsing mode. Use a regular window, or allow the site to store data.
+  </Accordion>
+</AccordionGroup>
+
+## Report an issue
+
+If none of the above solves your problem, open an [issue](https://github.com/cokice/japanese-analyzer/issues) on GitHub. When you report an analysis problem, include:
+
+- The model provider and model version
+- The interface language
+- The original text that reproduces the problem
+
+<Warning>
+  Don't paste API keys or access passwords into issues.
+</Warning>

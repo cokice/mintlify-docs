@@ -1,0 +1,93 @@
+---
+title: "常見問題"
+description: "解決部署、金鑰、解析、朗讀和今日一句的常見問題。"
+icon: "circle-question"
+---
+
+<Info>
+  應用程式的錯誤提示會以目前的介面語言顯示。本頁引用的是繁體中文介面中的文字。模型服務商傳回的原始錯誤訊息（例如 `HTTP 429: ...`）不會翻譯。
+</Info>
+
+## 部署與存取
+
+<AccordionGroup>
+  <Accordion title="頁面能開啟，但解析時提示「未提供 API 金鑰」">
+    伺服器沒有有效的 `DEEPSEEK_API_KEY` 或 `GEMINI_API_KEY`，瀏覽器的設定中也沒有填入 Key。
+
+    - Docker：修改 `.env.production` 後，執行 `docker compose up -d` 重建容器。
+    - Vercel：在 **Settings** → **Environment Variables** 中新增變數後，重新部署。
+    - 本機開發：修改 `.env.local` 後，重新啟動 `npm run dev`。
+  </Accordion>
+
+  <Accordion title="只設定了 Gemini Key，解析仍然失敗">
+    應用程式預設使用 DeepSeek。開啟**設定**，把**模型服務**切換為 **Gemini**，然後點選**儲存設定**。
+  </Accordion>
+
+  <Accordion title="在伺服器本機用 curl 正常，但外部網路打不開">
+    雲端服務商的安全性群組或系統防火牆沒有開放對應的連接埠。請開放 `3002`，或在設定反向 Proxy 後開放 `80` 和 `443`。
+  </Accordion>
+
+  <Accordion title="HTTPS 憑證申請失敗">
+    網域尚未解析到伺服器，或 `80` 連接埠沒有開放。確認 A 記錄已生效後再試一次。
+  </Accordion>
+
+  <Accordion title="設定了存取密碼，但每次都要重新輸入">
+    正式環境中的工作階段 Cookie 帶有 `Secure` 標記，只能透過 HTTPS 儲存。請為網站設定 HTTPS。修改 `CODE` 後，所有舊的工作階段也會失效。
+  </Accordion>
+</AccordionGroup>
+
+## 解析與翻譯
+
+<AccordionGroup>
+  <Accordion title="串流輸出經常中斷">
+    在**設定**中關閉**串流輸出**，改為一次傳回完整結果。如果你使用 Nginx 反向 Proxy，還要確認已設定 `proxy_buffering off`。
+  </Accordion>
+
+  <Accordion title="提示「解析結果未能完整還原原文」">
+    模型傳回的詞項拼接後與原文不一致。重新解析一次，或切換到另一個模型版本。
+  </Accordion>
+
+  <Accordion title="提示遭上游模型截斷（finish_reason: length）">
+    輸出超過了模型的長度上限。請縮短原文，或分幾次解析。
+  </Accordion>
+
+  <Accordion title="提示「上游介面請求逾時」">
+    模型服務商在 60 秒內沒有回應。請檢查伺服器到模型服務商的網路，稍後再試。
+  </Accordion>
+
+  <Accordion title="提示「上游串流回應閒置逾時」">
+    串流輸出超過 90 秒沒有收到新內容。請重新解析一次。如果經常發生，請在**設定**中關閉**串流輸出**。
+  </Accordion>
+
+  <Accordion title="斷詞不準確，一個詞被拆成好幾段">
+    圈選這幾個詞，如果應用程式判斷它們是一個詞，請點選**合併為一個詞**。詳見[單字詳解與多詞圈選](/zh-Hant/features/word-detail#合併被拆開的詞)。
+  </Accordion>
+</AccordionGroup>
+
+## 其他功能
+
+<AccordionGroup>
+  <Accordion title="首頁的今日一句只在幾句固定的句子中輪替">
+    伺服器沒有可用的 API Key，或對外網路無法連線到模型服務商，應用程式因此改用了 7 句內建備用句。今日一句只使用伺服器 Key，不會使用瀏覽器中填入的 Key。
+  </Accordion>
+
+  <Accordion title="Gemini TTS 無法朗讀">
+    Gemini TTS 需要 Gemini API Key。請在伺服器設定 `GEMINI_API_KEY`，或在**設定**中填入 Gemini Key。你也可以切換回不需要 Key 的 Edge TTS。
+  </Accordion>
+
+  <Accordion title="最近紀錄在重新整理後消失">
+    瀏覽器停用了本機儲存空間，或正處於無痕模式。請改用一般視窗，或允許網站儲存資料。
+  </Accordion>
+</AccordionGroup>
+
+## 回報問題
+
+如果以上內容沒有解決你的問題，請在 GitHub 提交 [Issue](https://github.com/cokice/japanese-analyzer/issues)。回報解析問題時，請附上：
+
+- 模型服務商和模型版本
+- 介面語言
+- 能重現問題的原文
+
+<Warning>
+  不要在 Issue 中貼上 API Key 或存取密碼。
+</Warning>

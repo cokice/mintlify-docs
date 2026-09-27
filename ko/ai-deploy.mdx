@@ -1,0 +1,70 @@
+---
+title: "AI 에이전트로 배포"
+description: "Claude Code, Codex 또는 Cursor에 한 문장만 전달하면 AI 코딩 도우미가 배포를 대신해 줍니다."
+icon: "robot"
+---
+
+저장소에는 AI 코딩 도우미를 위해 작성한 배포 가이드 [`docs/agent-deploy.md`](https://github.com/cokice/japanese-analyzer/blob/master/docs/agent-deploy.md)가 있습니다. 아래 문장을 Claude Code, Codex, Cursor 또는 Gemini CLI에 보내기만 하면 됩니다.
+
+```text
+https://raw.githubusercontent.com/cokice/japanese-analyzer/master/docs/agent-deploy.md 를 읽고, 안내된 단계에 따라 japanese-analyzer 배포를 도와주세요.
+```
+
+AI 도우미는 먼저 어디에 배포할지, 어떤 키를 사용할지 묻고, 설치와 확인을 마친 뒤 접속 주소를 알려 줍니다.
+
+## 배포 과정
+
+<Steps>
+  <Step title="한 번에 묻기">
+    AI 도우미는 다음 질문을 한 번에 묻습니다.
+
+    1. **어디에 배포할까요?**
+       - A. 현재 Linux 서버에 Docker로 배포(권장)
+       - B. Vercel
+       - C. 로컬에서만 실행해 보기
+    2. **DeepSeek API 키**. 없다면 Gemini 키만 제공해도 됩니다.
+    3. **선택 사항**: Gemini API 키, 접속 비밀번호 `CODE`, 도메인(A만 해당).
+  </Step>
+
+  <Step title="배포 실행">
+    - **Docker**: Docker와 포트를 확인하고, Compose 파일을 내려받고, `.env.production`을 작성해 `600` 권한을 설정한 뒤 컨테이너를 시작합니다. 도메인을 제공했다면 리버스 프록시와 HTTPS 설정까지 이어서 진행합니다.
+    - **Vercel**: Vercel 로그인과 권한 부여는 사용자가 직접 하고, AI 도우미는 저장소 가져오기와 환경 변수 추가를 안내합니다.
+    - **로컬**: 저장소를 복제하고, 의존성을 설치하고, 빌드한 뒤 실행합니다.
+  </Step>
+
+  <Step title="검수">
+    AI 도우미는 컨테이너 상태와 로그를 확인하고 `curl`로 `200`이 반환되는지 확인합니다.
+  </Step>
+
+  <Step title="전달">
+    AI 도우미는 다음 내용을 알려 줍니다.
+
+    - 접속 주소(IP와 포트 또는 도메인)
+    - `CODE`를 설정했다면 처음 접속할 때 비밀번호를 입력해야 한다는 점
+    - Gemini 키만 설정했다면 **설정**에서 제공업체를 Gemini로 바꿔야 한다는 점
+    - 업데이트와 로그 확인 명령
+  </Step>
+</Steps>
+
+## AI 도우미가 지키는 규칙
+
+가이드는 서버와 키를 보호하기 위해 AI 도우미가 다음 규칙을 지키도록 요구합니다.
+
+<CardGroup cols={2}>
+  <Card title="키 보호" icon="key">
+    API 키는 사용자에게만 요청합니다. 출력하거나 로그에 기록하거나 git에 커밋하지 않습니다.
+  </Card>
+  <Card title="먼저 묻고 실행" icon="hand">
+    컨테이너나 파일 삭제, 포트 점유 또는 변경, 시스템 소프트웨어 설치, 기존 Nginx, Caddy 또는 방화벽 구성 수정 전에는 먼저 동의를 구하고 구성을 백업합니다.
+  </Card>
+  <Card title="프로세스 종료 금지" icon="ban">
+    포트가 사용 중이면 어떤 프로세스가 쓰고 있는지 알려 주고, 포트를 바꿀지 직접 처리할지는 사용자가 결정하게 합니다.
+  </Card>
+  <Card title="실패하면 중단" icon="circle-stop">
+    어떤 단계가 실패하면 핵심 오류와 판단을 알려 주고, 무작정 재시도를 반복하지 않습니다.
+  </Card>
+</CardGroup>
+
+<Tip>
+  [배포](/ko/deployment) 페이지의 단계에 따라 같은 과정을 직접 진행할 수도 있습니다.
+</Tip>

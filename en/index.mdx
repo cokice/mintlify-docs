@@ -1,0 +1,95 @@
+---
+title: "日本語文章解析"
+description: "Read Japanese sentences word by word. Type or paste Japanese to see word segmentation, furigana, parts of speech, meanings, and a full translation."
+icon: "language"
+---
+
+Japanese Text Analyzer (日本語文章解析) is an AI-powered web app for breaking down Japanese sentences. You type or paste Japanese text, and it labels each word with its kana reading, romaji, and part of speech. A full translation appears below. Click any word to see its meaning in that sentence, its usage, its conjugation, and an example sentence.
+
+<Info>
+  Want to try it first? Open the [live demo](https://nihongodemo.howen.ink/) and start analyzing without deploying anything.
+</Info>
+
+![Analysis results with dictionary definition](https://raw.githubusercontent.com/cokice/japanese-analyzer/master/docs/images/app-home.png)
+
+## Features at a glance
+
+### Read sentences
+
+<CardGroup cols={3}>
+  <Card title="Sentence analysis" icon="spell-check" href="/en/features/analysis">
+    Label each word with furigana, romaji, and part of speech, and get a full translation automatically.
+  </Card>
+  <Card title="Word details" icon="book-open" href="/en/features/word-detail">
+    Click a word to see its meaning in the sentence, dictionary form, conjugation, and an example.
+  </Card>
+  <Card title="Multi-word selection" icon="highlighter" href="/en/features/word-detail#multi-word-selection">
+    Get grammar patterns and set expressions explained as a whole. Merge a wrongly split word in one click.
+  </Card>
+</CardGroup>
+
+### Work more smoothly
+
+<CardGroup cols={2}>
+  <Card title="Sentence of the day and recent texts" icon="calendar-days" href="/en/features/daily-sentence">
+    The home page shows a new sentence each day, updated on Japan time. Your recent analyses are saved locally in your browser.
+  </Card>
+  <Card title="Image recognition" icon="image" href="/en/features/image-recognition">
+    Upload or paste a screenshot to extract the Japanese text in it.
+  </Card>
+  <Card title="Read text aloud" icon="volume-high" href="/en/features/text-to-speech">
+    Listen with Edge TTS or Gemini TTS, with adjustable speed and voice.
+  </Card>
+  <Card title="AI Japanese Assistant" icon="comments" href="/en/features/ai-assistant">
+    Ask follow-up questions about grammar, vocabulary, and learning, in the context of the current sentence.
+  </Card>
+</CardGroup>
+
+### Interface
+
+- Supports 简体中文, 繁體中文, English, and 한국어. The interface, translations, and definitions switch together.
+- Offers three themes: light, dark, and system. Works on desktop and mobile.
+- Splits long texts into chunks automatically. When you paste from a web page or Markdown, formatting and links are removed automatically.
+
+<Columns cols={2}>
+  <Frame caption="Dark mode">
+    <img src="https://raw.githubusercontent.com/cokice/japanese-analyzer/master/docs/images/app-dark.png" alt="Analysis interface in dark mode" />
+  </Frame>
+  <Frame caption="AI Japanese Assistant on a phone">
+    <img src="https://raw.githubusercontent.com/cokice/japanese-analyzer/master/docs/images/mobile-chat.png" alt="AI Japanese Assistant on a phone" />
+  </Frame>
+</Columns>
+
+## Models
+
+| Purpose | Default | Options |
+| --- | --- | --- |
+| Analysis, translation, definitions, AI assistant | DeepSeek `deepseek-flash` | Gemini `gemini-flash-latest` / `gemini-flash-lite-latest` |
+| Image recognition | Same as the selected text model | — |
+| Text-to-speech | Edge TTS | Gemini TTS (requires a Gemini API key) |
+
+The API key configured on the server is shared by all visitors. Users can also enter their own key in **Settings**. That key stays in their own browser, and the app server forwards it to the model provider with each request. For details, see [Keys and privacy](/en/privacy).
+
+## Tech stack
+
+- Next.js 15 (App Router) and React 19
+- Tailwind CSS
+- DeepSeek and Gemini through OpenAI-compatible APIs
+- License: [AGPL-3.0-only](/en/license)
+
+## Next steps
+
+<Columns cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/en/quickstart">
+    Install dependencies locally and run the app in minutes.
+  </Card>
+  <Card title="Deployment" icon="server" href="/en/deployment">
+    Deploy to Vercel, or run it on your own server with Docker.
+  </Card>
+  <Card title="Deploy with an AI agent" icon="robot" href="/en/ai-deploy">
+    Hand deployment to an AI coding assistant such as Claude Code or Codex with a single sentence.
+  </Card>
+  <Card title="Configuration" icon="sliders" href="/en/configuration">
+    Learn about every environment variable, the models, and the access password.
+  </Card>
+</Columns>

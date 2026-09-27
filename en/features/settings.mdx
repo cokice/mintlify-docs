@@ -1,0 +1,73 @@
+---
+title: "Settings, language, and theme"
+description: "Switch the AI provider, enter your own API key, and adjust the interface language and theme."
+icon: "gear"
+---
+
+The toolbar in the top-right corner of the page contains, from left to right: the current AI provider, the GitHub repository link, the theme switcher, the interface language switcher, and **Settings** (the gear icon).
+
+![Model and API settings](https://raw.githubusercontent.com/cokice/japanese-analyzer/master/docs/images/provider-settings.png)
+
+## Model and API
+
+Click the gear icon to open **Settings**. The **Model & API** group contains these options:
+
+| Option | Description |
+| --- | --- |
+| AI provider | Switch between **Gemini** and **DeepSeek**. The default is DeepSeek. |
+| Model version | DeepSeek uses `deepseek-flash`. Gemini offers `gemini-flash-latest` or `gemini-flash-lite-latest`. |
+| API key (optional) | Enter your own key for the current provider. Leave it blank to use the server-configured key. |
+
+After making changes, click **Save settings**. The changes take effect when the page shows “Settings saved”. The current provider appears at the far left of the toolbar.
+
+The selected AI provider and model version are used for sentence analysis, translation, word details, image recognition, and the AI Japanese Assistant.
+
+<Info>
+  Gemini and DeepSeek keys are stored separately. When you switch providers, the input box shows the key for that provider.
+</Info>
+
+### How your own key is used
+
+- The key is stored in the current browser's local storage and isn't synced to other devices.
+- When the app calls a model, the key is sent with the request to the app server, which forwards it to the model provider. The server doesn't store it.
+- If you entered a key, the app uses your key first. If you left it blank, the app uses the server-configured key.
+
+<Warning>
+  Don't save a personal API key on a public or shared computer. When you're done, clear the input box and save to delete the locally stored key.
+</Warning>
+
+## Output
+
+| Option | Description |
+| --- | --- |
+| Streaming output | On by default. Shows analysis, translations, and definitions in real time. If your connection is unstable, turn it off to get the complete result all at once. |
+| Deep reasoning | Shown when DeepSeek is selected. Currently unavailable. |
+
+## Interface language
+
+Click the language button in the toolbar to choose from:
+
+- 简体中文 (default)
+- 繁體中文
+- English
+- 한국어
+
+The interface text, error messages, full translations, word definitions, and AI Japanese Assistant replies all switch to the selected language. 繁體中文 uses vocabulary common in Taiwan rather than a simple character conversion from Simplified Chinese. The original Japanese text, readings, Japanese example sentences, and Japanese part-of-speech labels always stay in Japanese.
+
+## Theme
+
+Click the theme button in the toolbar to switch between these modes:
+
+- **Light mode**
+- **Dark mode**
+- **System**
+
+## Where settings are stored
+
+All of the following settings are stored in the current browser's local storage. Clearing your browser data restores the defaults:
+
+- AI provider, model version, and the API key for each provider
+- The streaming output toggle
+- Interface language and theme
+- The speech engine, voice, speed, and speaking style for text-to-speech
+- Recent analyzed texts and today's sentence of the day

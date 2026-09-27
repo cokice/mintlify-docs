@@ -1,0 +1,106 @@
+---
+title: "Quickstart"
+description: "Install, configure, and run Japanese Text Analyzer locally from source."
+icon: "rocket"
+---
+
+This guide walks you through starting the app from source. When you finish, you can enter a Japanese sentence in your browser and see the analysis.
+
+## Prerequisites
+
+Before you start, make sure you have:
+
+- [Node.js 22](https://nodejs.org/) and npm
+- Git
+- A DeepSeek API key or a Gemini API key
+
+<Tip>
+  We recommend setting up DeepSeek first. It is the default provider and handles analysis, translation, definitions, and image recognition. Only Gemini TTS requires a Gemini API key.
+</Tip>
+
+## Start the app
+
+<Steps>
+  <Step title="Clone the repository">
+    ```bash
+    git clone https://github.com/cokice/japanese-analyzer.git
+    cd japanese-analyzer
+    ```
+  </Step>
+
+  <Step title="Install dependencies">
+    ```bash
+    npm ci
+    ```
+  </Step>
+
+  <Step title="Create the environment file">
+    <CodeGroup>
+      ```bash macOS / Linux
+      cp .env.example .env.local
+      ```
+
+      ```powershell Windows PowerShell
+      Copy-Item .env.example .env.local
+      ```
+    </CodeGroup>
+  </Step>
+
+  <Step title="Add an API key">
+    Open `.env.local` and fill in at least one key:
+
+    ```env .env.local
+    DEEPSEEK_API_KEY=your_deepseek_api_key
+    ```
+
+    All other variables are optional. For the full list, see [Configuration](/en/configuration).
+  </Step>
+
+  <Step title="Start the development server">
+    ```bash
+    npm run dev
+    ```
+
+    Open [http://localhost:3000](http://localhost:3000).
+  </Step>
+</Steps>
+
+<Check>
+  Enter a Japanese sentence, such as 「天気がいいから、散歩しましょう」, and click **Analyze**. If you see word-by-word readings and a translation in your interface language, your setup works. You can also click **Sentence of the day** on the home page to analyze it directly.
+</Check>
+
+## Access from your phone
+
+To open the development server from a phone on the same local network, make the server listen on all network interfaces:
+
+```bash
+npm run dev -- --hostname 0.0.0.0
+```
+
+Then open `http://<your-computer-IP>:3000` in your phone's browser.
+
+## Only a Gemini key is configured
+
+The app uses DeepSeek by default. If you only filled in `GEMINI_API_KEY`, open the page and click **Settings** in the top-right corner. Switch **AI provider** to **Gemini**, then click **Save settings**.
+
+## Run a production build
+
+To try the production build on your machine, run:
+
+```bash
+npm run build
+npm start
+```
+
+`npm start` listens on port `3000` by default.
+
+## What's next
+
+<Columns cols={2}>
+  <Card title="User guide" icon="book-open" href="/en/features/analysis">
+    Learn how to use analysis, word details, and multi-word selection.
+  </Card>
+  <Card title="Deployment" icon="server" href="/en/deployment">
+    Publish to Vercel, or run it on a server with Docker.
+  </Card>
+</Columns>

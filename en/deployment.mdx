@@ -1,0 +1,240 @@
+---
+title: "Deployment"
+description: "Deploy Japanese Text Analyzer with Vercel, Docker Compose, or docker run."
+icon: "server"
+---
+
+You can deploy the app to Vercel, or run it on your own server with Docker. If you want an AI coding assistant to do it for you, see [Deploy with an AI agent](/en/ai-deploy).
+
+| Method | Best for |
+| --- | --- |
+| [Vercel](#deploy-to-vercel) | You have no server and want to go live as fast as possible. |
+| [Docker Compose](#use-docker-compose) | Long-term hosting on a VPS. This is the recommended method. |
+| [docker run](#use-docker-run) | You don't want to use a Compose file. |
+
+## Deploy to Vercel
+
+<Steps>
+  <Step title="Import the repository">
+    Click the button below, or import `cokice/japanese-analyzer` in Vercel.
+
+    <Card title="Deploy with Vercel" icon="triangle" href="https://vercel.com/new/clone?repository-url=https://github.com/cokice/japanese-analyzer">
+      Create a new Vercel project from the GitHub repository.
+    </Card>
+  </Step>
+
+  <Step title="Configure environment variables">
+    In your project, open **Settings** → **Environment Variables** and add at least `DEEPSEEK_API_KEY`.
+
+    Add `GEMINI_API_KEY` if you need Gemini models or Gemini TTS. Add `CODE` if you need an access password. For the full list, see [Configuration](/en/configuration).
+  </Step>
+
+  <Step title="Redeploy">
+    Trigger a new deployment, then open the domain that Vercel assigns.
+  </Step>
+</Steps>
+
+<Tip>
+  If you have installed and logged in to the Vercel CLI, you can also run `vercel` in the repository directory. Add variables with `vercel env add`, then run `vercel --prod` to publish.
+</Tip>
+
+## Use Docker Compose
+
+The official image `howenhowen/japanese-analyzer` supports `linux/amd64` and `linux/arm64`. The container listens on port `3002`.
+
+<Steps>
+  <Step title="Prepare a directory">
+    ```bash
+    mkdir -p ~/japanese-analyzer && cd ~/japanese-analyzer
+    curl -fsSL https://raw.githubusercontent.com/cokice/japanese-analyzer/master/docker-compose.hub.yml -o docker-compose.yml
+    ```
+
+    If you have already cloned the repository, you can use its `docker-compose.hub.yml` directly.
+  </Step>
+
+  <Step title="Create the configuration file">
+    Create `.env.production` and fill in at least one key:
+
+    ```env .env.production
+    DEEPSEEK_API_KEY=your_deepseek_api_key
+    GEMINI_API_KEY=
+    CODE=
+    ```
+
+    Restrict the file permissions so other users can't read it:
+
+    ```bash
+    chmod 600 .env.production
+    ```
+  </Step>
+
+  <Step title="Start the service">
+    ```bash
+    docker compose up -d
+    ```
+  </Step>
+
+  <Step title="Verify">
+    ```bash
+    docker compose ps
+    docker compose logs --tail 50
+    curl -fsS -o /dev/null -w "%{http_code}\n" http://127.0.0.1:3002
+    ```
+
+    The deployment succeeded if the container status is `running`, the logs show no errors, and `curl` returns `200`. Open `http://<server-IP>:3002` to use the app.
+  </Step>
+</Steps>
+
+The Compose file sets `restart: unless-stopped`, so the container starts automatically after the server reboots.
+
+<Accordion title="Contents of docker-compose.hub.yml">
+  ```yaml
+  services:
+    japanese-analyzer:
+      image: ${DOCKER_IMAGE:-howenhowen/japanese-analyzer:latest}
+      env_file:
+        - .env.production
+      environment:
+        NODE_ENV: production
+        PORT: "3002"
+        HOSTNAME: 0.0.0.0
+      ports:
+        - "3002:3002"
+      restart: unless-stopped
+  ```
+
+  Set the `DOCKER_IMAGE` environment variable to use a different image tag, such as a version tag or a `sha-<commit>` tag. For the available tags, see [Image tags](/en/development#image-tags).
+</Accordion>
+
+### Change the port
+
+If port `3002` is already in use on the host, change the host port on the left side of `ports`. Keep the container port unchanged:
+
+```yaml
+ports:
+  - "3102:3002"
+```
+
+### Build the image from source
+
+The repository's `docker-compose.yml` builds the image from the local `Dockerfile`:
+
+```bash
+git clone https://github.com/cokice/japanese-analyzer.git
+cd japanese-analyzer
+cp .env.production.example .env.production   # Fill in your keys
+docker compose up -d --build
+```
+
+## Use docker run
+
+```bash
+docker run -d \
+  --name japanese-analyzer \
+  --restart unless-stopped \
+  -p 3002:3002 \
+  -e DEEPSEEK_API_KEY="your_deepseek_api_key" \
+  -e GEMINI_API_KEY="" \
+  -e CODE="" \
+  howenhowen/japanese-analyzer:latest
+```
+
+If you need Umami, also add:
+
+```bash
+  -e NEXT_PUBLIC_UMAMI_SRC="https://cloud.umami.is/script.js" \
+  -e NEXT_PUBLIC_UMAMI_WEBSITE_ID="your_umami_website_id" \
+```
+
+View the logs:
+
+```bash
+docker logs -f japanese-analyzer
+```
+
+## Update to the latest version
+
+<Tabs>
+  <Tab title="Docker Compose">
+    ```bash
+    cd ~/japanese-analyzer
+    docker compose pull
+    docker compose up -d
+    ```
+  </Tab>
+  <Tab title="docker run">
+    Pull the new image, remove the old container, then run it again with the same options:
+
+    ```bash
+    docker pull howenhowen/japanese-analyzer:latest
+    docker rm -f japanese-analyzer
+    # Run the docker run command above again
+    ```
+
+    <Warning>
+      `docker rm -f` forcibly removes the container. Before you run it, confirm the container name and note down the original run options.
+    </Warning>
+  </Tab>
+  <Tab title="Vercel">
+    Vercel redeploys automatically when you push to the repository's default branch. If you deployed a fork, sync the upstream changes first.
+  </Tab>
+</Tabs>
+
+## Set up a domain and HTTPS
+
+Once the container is running, you can add a domain and HTTPS:
+
+<Steps>
+  <Step title="Point the domain">
+    Point the domain's A record to the server's public IP. Open ports `80` and `443` in your cloud provider's security group and the system firewall.
+  </Step>
+  <Step title="Check for an existing web server">
+    ```bash
+    command -v nginx caddy
+    ```
+
+    If Nginx or Caddy is already installed, reuse it. Don't install a second one.
+  </Step>
+  <Step title="Configure a reverse proxy">
+    <CodeGroup>
+      ```caddyfile Caddy
+      your.domain.com {
+          reverse_proxy 127.0.0.1:3002
+      }
+      ```
+
+      ```nginx Nginx
+      server {
+          listen 80;
+          server_name your.domain.com;
+
+          location / {
+              proxy_pass http://127.0.0.1:3002;
+              proxy_http_version 1.1;
+              proxy_set_header Host $host;
+              proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+              proxy_set_header X-Forwarded-Proto $scheme;
+              proxy_buffering off;
+          }
+      }
+      ```
+    </CodeGroup>
+
+    Caddy obtains and renews Let's Encrypt certificates automatically. With Nginx, use certbot to obtain a certificate and redirect HTTP to HTTPS.
+  </Step>
+  <Step title="Verify">
+    ```bash
+    curl -I https://your.domain.com
+    ```
+
+    The setup is complete if the command returns a normal status code and the certificate is valid.
+  </Step>
+</Steps>
+
+<Tip>
+  Set `proxy_buffering off` in Nginx so streaming output isn't buffered and returned all at once.
+</Tip>
+
+## Deploy your own modified version
+
+The project is licensed under AGPL-3.0-only. If you modify the code and offer it as a service to others over a network, you must provide your users with the corresponding source code of your modified version. You must also point the GitHub source link in the interface to your actual version. For details, see [License](/en/license).

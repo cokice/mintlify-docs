@@ -1,0 +1,127 @@
+---
+title: "開發指南"
+description: "了解開發指令、專案結構、測試、持續整合和 Docker 映像檔發布規則。"
+icon: "code"
+---
+
+本專案以 Next.js 15（App Router）、React 19 和 Tailwind CSS 為基礎，使用 TypeScript 撰寫。開始開發前，請先依照[快速開始](/zh-Hant/quickstart)完成本機設定。
+
+## 常用指令
+
+```bash
+npm run dev          # 啟動開發伺服器（Turbopack）
+npm test             # 執行單元與介面測試
+npm run lint         # 程式碼檢查
+npx tsc --noEmit     # 型別檢查
+npm run build        # 正式版建置
+npm start            # 執行正式版建置
+```
+
+提交變更前，建議依序執行測試、程式碼檢查、型別檢查和正式版建置。
+
+### 測試
+
+`npm test` 會執行 `tests/api.test.ts` 和 `tests/i18n.test.ts`。`api.test.ts` 會匯入其餘的測試檔案，因此一個指令就能執行全部測試。偵錯時，也可以用 `tsx` 單獨執行某個檔案：
+
+```bash
+npx tsx tests/pastedText.test.ts
+```
+
+| 測試檔案 | 涵蓋內容 |
+| --- | --- |
+| `api.test.ts` | API 路由、服務商設定和請求驗證，並匯入其他測試 |
+| `i18n.test.ts` | 文案完整性（每個鍵都有三種翻譯，且預留位置一致）、錯誤訊息在地化和各語言的回答要求 |
+| `analysisHistory.test.ts` | 最近紀錄的去除重複、排序和數量上限 |
+| `analysisUrls.test.ts` | 解析時連結的保護與還原 |
+| `dailySentence.test.ts` | 今日一句的產生與驗證 |
+| `localOutput.test.ts` | 羅馬拼音轉換、串流輸出解析和模型回應解析 |
+| `pastedText.test.ts` | 貼上網頁和 Markdown 時的格式清理 |
+| `phraseRange.test.ts` | 多詞圈選與合併 |
+| `readingLayout.test.ts` | 注音排版中詞與標點的分組 |
+| `requestMetrics.test.ts` | Umami 請求指標與錯誤分類 |
+| `wordDetailContext.test.ts` | 長文中單字詳解的上下文擷取 |
+| `wordDetailDictionary.test.ts` | 單字詳解結構化結果的解析 |
+
+## 專案結構
+
+```text
+app/
+  api/                # Next.js API 路由（解析、翻譯、釋義、圖片辨識、朗讀、對話等）
+  api/_utils/         # 服務商設定、OpenAI 相容 Proxy、工作階段驗證、逾時和今日一句產生
+  components/         # 輸入區、解析結果、單字詳情、譯文、AI 助手、設定對話框等
+  contexts/           # 介面語言與主題
+  hooks/              # 單字詳情、多詞圈選和最近紀錄
+  i18n/               # 介面語言與文案（以簡體中文原文為鍵）
+  lib/                # 模型清單與各功能的提示詞
+  services/api.ts     # 前端 API 呼叫、串流解析和長文分段
+  utils/              # 分段、羅馬拼音、貼上清理、統計等工具函式
+components/ui/        # 通用 UI 元件
+docs/                 # 截圖和 AI Agent 部署指南
+tests/                # 測試
+```
+
+### 新增介面文案
+
+文案定義在 `app/i18n/messages.ts` 中。簡體中文原文就是鍵，其他三種語言則是值：
+
+```ts app/i18n/messages.ts
+"历史记录": {"zh-TW": "歷史紀錄", "en": "History", "ko": "기록"},
+```
+
+在元件中透過 `t("历史记录")` 使用。新增文案時，請同時提供 `zh-TW`、`en` 和 `ko` 三種翻譯，`i18n.test.ts` 會檢查完整性。
+
+## 持續整合
+
+`.github/workflows/docker.yml` 會在推送到任何分支、推送 `v*` 標籤、提交 Pull Request 或手動觸發時執行：
+
+<Steps>
+  <Step title="驗證">
+    使用 Node.js 22 依序執行 `npm ci`、`npm test`、`npm run lint` 和 `npm run build`。
+  </Step>
+  <Step title="建置映像檔">
+    驗證通過後建置 Docker 映像檔。一般分支和 Pull Request 只建置 `linux/amd64`，用來檢查映像檔能否成功建置。
+  </Step>
+  <Step title="發布映像檔">
+    推送到預設分支、`howendev/dev` 分支或任何標籤時，會同時建置 `linux/amd64` 和 `linux/arm64`，並在設定了 Docker Hub secrets 時推送多架構映像檔。
+  </Step>
+</Steps>
+
+| 架構 | 建置環境 |
+| --- | --- |
+| `linux/amd64` | `ubuntu-latest` |
+| `linux/arm64` | `ubuntu-24.04-arm` |
+
+### 映像檔標籤
+
+| 觸發方式 | 產生的標籤 |
+| --- | --- |
+| 推送到預設分支 | `latest`、`<分支名稱>`、`sha-<短提交雜湊>` |
+| 推送到 `howendev/dev` | `latest`、`howendev-dev`、`sha-<短提交雜湊>` |
+| 推送標籤 | `<標籤名稱>`、`sha-<短提交雜湊>` |
+
+### Docker Hub secrets
+
+在 GitHub 儲存庫中開啟 **Settings** → **Secrets and variables** → **Actions**，新增：
+
+| Secret | 說明 |
+| --- | --- |
+| `DOCKERHUB_USERNAME` | Docker Hub 使用者名稱。 |
+| `DOCKERHUB_TOKEN` | Docker Hub Personal Access Token。請勿使用帳號密碼。 |
+
+未設定這兩個 secrets 時，工作流程只會建置映像檔而不推送，並輸出一則警告。
+
+<Warning>
+  不要把執行階段的金鑰寫入 Docker 映像檔。`DEEPSEEK_API_KEY`、`GEMINI_API_KEY`、`CODE` 和 Umami 設定應在執行容器時，透過 `.env.production` 或 `-e` 參數注入。
+</Warning>
+
+## Docker 映像檔
+
+`Dockerfile` 以 `node:22-alpine` 進行多階段建置，並使用 Next.js standalone 輸出：
+
+- 執行階段以非 root 使用者 `nextjs` 執行。
+- 預設監聽 `0.0.0.0:3002`。
+- 映像檔包含 `LICENSE`、`NOTICE`、`LICENSING.md` 和 `LICENSES/` 授權檔案。
+
+## 貢獻
+
+歡迎提交 [Issue](https://github.com/cokice/japanese-analyzer/issues) 和 Pull Request。新的貢獻請使用與 AGPL-3.0-only 相容的授權，並保留所引入第三方程式碼的聲明。詳見[授權條款](/zh-Hant/license)。

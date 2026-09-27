@@ -1,0 +1,106 @@
+---
+title: "빠른 시작"
+description: "소스 코드로 일본어 문장 분석을 로컬에 설치, 구성하고 실행합니다."
+icon: "rocket"
+---
+
+이 가이드에서는 소스 코드로 앱을 실행하는 방법을 안내합니다. 마치고 나면 브라우저에서 일본어 문장을 입력하고 분석 결과를 볼 수 있습니다.
+
+## 준비 사항
+
+시작하기 전에 다음을 준비하세요.
+
+- [Node.js 22](https://nodejs.org/)와 npm
+- Git
+- DeepSeek API 키 또는 Gemini API 키 하나
+
+<Tip>
+  먼저 DeepSeek를 설정하는 것을 권장합니다. DeepSeek는 기본 제공업체로, 분석, 번역, 뜻풀이, 이미지 인식을 담당합니다. Gemini API 키가 반드시 필요한 것은 Gemini TTS 음성 읽기뿐입니다.
+</Tip>
+
+## 앱 실행
+
+<Steps>
+  <Step title="저장소 복제">
+    ```bash
+    git clone https://github.com/cokice/japanese-analyzer.git
+    cd japanese-analyzer
+    ```
+  </Step>
+
+  <Step title="의존성 설치">
+    ```bash
+    npm ci
+    ```
+  </Step>
+
+  <Step title="환경 변수 파일 만들기">
+    <CodeGroup>
+      ```bash macOS / Linux
+      cp .env.example .env.local
+      ```
+
+      ```powershell Windows PowerShell
+      Copy-Item .env.example .env.local
+      ```
+    </CodeGroup>
+  </Step>
+
+  <Step title="API 키 입력">
+    `.env.local`을 열고 키를 하나 이상 입력하세요.
+
+    ```env .env.local
+    DEEPSEEK_API_KEY=your_deepseek_api_key
+    ```
+
+    다른 변수는 모두 선택 사항입니다. 전체 목록은 [구성](/ko/configuration)을 참고하세요.
+  </Step>
+
+  <Step title="개발 서버 시작">
+    ```bash
+    npm run dev
+    ```
+
+    [http://localhost:3000](http://localhost:3000)을 여세요.
+  </Step>
+</Steps>
+
+<Check>
+  「天気がいいから、散歩しましょう」 같은 일본어 문장을 입력하고 **분석**을 누르세요. 단어별 후리가나와 번역이 보이면 설정이 완료된 것입니다. 홈 화면의 **오늘의 문장**을 눌러 바로 분석할 수도 있습니다.
+</Check>
+
+## 휴대폰에서 접속
+
+같은 로컬 네트워크의 휴대폰에서 개발 서버에 접속하려면 서버가 모든 네트워크 인터페이스에서 수신하도록 실행하세요.
+
+```bash
+npm run dev -- --hostname 0.0.0.0
+```
+
+그런 다음 휴대폰 브라우저에서 `http://컴퓨터IP:3000`을 여세요.
+
+## Gemini 키만 설정한 경우
+
+앱은 기본적으로 DeepSeek를 사용합니다. `GEMINI_API_KEY`만 입력했다면 페이지를 연 뒤 오른쪽 위의 **설정**을 누르고, **AI 제공업체**를 **Gemini**로 바꾼 다음 **설정 저장**을 누르세요.
+
+## 프로덕션 빌드 실행
+
+로컬에서 프로덕션 버전을 사용해 보려면 다음을 실행하세요.
+
+```bash
+npm run build
+npm start
+```
+
+`npm start`는 기본적으로 `3000` 포트에서 수신합니다.
+
+## 다음으로
+
+<Columns cols={2}>
+  <Card title="사용 가이드" icon="book-open" href="/ko/features/analysis">
+    분석, 단어 상세 설명, 여러 단어 선택의 사용법을 알아봅니다.
+  </Card>
+  <Card title="배포" icon="server" href="/ko/deployment">
+    Vercel에 게시하거나 Docker로 서버에서 실행합니다.
+  </Card>
+</Columns>

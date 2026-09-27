@@ -1,0 +1,106 @@
+---
+title: "Configuration"
+description: "Configure model providers, upstream API URLs, the access password, and Umami analytics."
+icon: "sliders"
+---
+
+You configure everything on the server side through environment variables. Local development uses `.env.local`, and Docker deployments use `.env.production`. On Vercel, you set them in your project under **Settings** → **Environment Variables**.
+
+## Environment variables
+
+| Variable | Required | Purpose |
+| --- | --- | --- |
+| `DEEPSEEK_API_KEY` | Recommended | DeepSeek API key. Used for the default analysis, translation, definitions, image recognition, AI assistant, and sentence of the day. |
+| `GEMINI_API_KEY` | Optional | Gemini API key. Used for Gemini text models, image recognition, and Gemini TTS. |
+| `DEEPSEEK_API_URL` | Optional | OpenAI-compatible API URL for DeepSeek. Leave it empty to use the official URL. |
+| `GEMINI_API_URL` | Optional | OpenAI-compatible API URL for Gemini. Leave it empty to use the official URL. |
+| `CODE` | Optional | Access password. Leave it empty to require no password. |
+| `NEXT_PUBLIC_UMAMI_SRC` | Optional | URL of the Umami tracking script. |
+| `NEXT_PUBLIC_UMAMI_WEBSITE_ID` | Optional | Umami website ID. Set it together with `NEXT_PUBLIC_UMAMI_SRC`. |
+
+<Info>
+  Set at least one of `DEEPSEEK_API_KEY` and `GEMINI_API_KEY`. If you set neither, visitors must enter their own key in **Settings** to use the app, and the sentence of the day on the home page falls back to built-in backup sentences.
+</Info>
+
+Full example:
+
+```env .env.production
+# DeepSeek: the default text provider, also handles image recognition
+DEEPSEEK_API_KEY=your_deepseek_api_key
+DEEPSEEK_API_URL=https://api.deepseek.com/chat/completions
+
+# Gemini: optional, enables Gemini models and Gemini TTS
+GEMINI_API_KEY=your_gemini_api_key
+GEMINI_API_URL=https://generativelanguage.googleapis.com/v1beta/openai/chat/completions
+
+# Optional: access password
+CODE=
+
+# Optional: Umami analytics
+NEXT_PUBLIC_UMAMI_SRC=
+NEXT_PUBLIC_UMAMI_WEBSITE_ID=
+```
+
+## Model providers
+
+The app calls models through the OpenAI-compatible Chat Completions API.
+
+| Provider | Available models | Official API URL |
+| --- | --- | --- |
+| DeepSeek (default) | `deepseek-flash` | `https://api.deepseek.com/chat/completions` |
+| Gemini | `gemini-flash-latest` (default), `gemini-flash-lite-latest` | `https://generativelanguage.googleapis.com/v1beta/openai/chat/completions` |
+
+The server adjusts request parameters automatically for each provider:
+
+- **DeepSeek**: Returns structured results in `json_object` format, with thinking mode turned off.
+- **Gemini**: Returns structured results with a strict JSON Schema. `gemini-flash-latest` uses the `low` reasoning level, and `gemini-flash-lite-latest` uses the `minimal` reasoning level.
+
+### Use a custom API URL
+
+If you reach a model provider through a proxy or a compatible gateway, set `DEEPSEEK_API_URL` or `GEMINI_API_URL`. The URL must be the full Chat Completions endpoint, not a base URL.
+
+```env
+DEEPSEEK_API_URL=https://your-gateway.example.com/v1/chat/completions
+```
+
+<Warning>
+  You can only set API URLs in the server's environment variables. If a browser request includes a custom API URL, the server rejects it. This prevents the app from being used as a proxy to arbitrary addresses.
+</Warning>
+
+### Request timeouts
+
+| Situation | Timeout |
+| --- | --- |
+| Waiting for the upstream API to respond | 60 seconds |
+| Longest gap between two chunks during streaming output | 90 seconds |
+| Reading error details after the upstream API returns an error | 15 seconds |
+
+## Access password
+
+When you set `CODE`, visitors must enter the access password before they can use the site.
+
+```env
+CODE=choose-a-private-password
+```
+
+- After successful verification, the server sets an HttpOnly session cookie, `ja_session`, valid for 7 days.
+- The session token is signed with HMAC-SHA256, using `CODE` as the key. When you change `CODE`, all existing sessions become invalid immediately.
+- Without verification, the analysis, translation, definition, image recognition, text-to-speech, chat, and sentence-of-the-day endpoints all return `401`.
+- In production, the cookie has the `Secure` flag, so you must access the site over HTTPS.
+
+<Note>
+  `CODE` suits simple private deployments and keeps strangers from using up your API quota. It does not replace a full account and permission system.
+</Note>
+
+## Umami analytics
+
+When you set both of the following variables, the app loads the Umami tracking script:
+
+```env
+NEXT_PUBLIC_UMAMI_SRC=https://cloud.umami.is/script.js
+NEXT_PUBLIC_UMAMI_WEBSITE_ID=your_umami_website_id
+```
+
+If either one is empty, the app doesn't load Umami. The server reads both variables at runtime, so you only need to restart the service after changing them. Docker deployments don't need to rebuild the image.
+
+Analytics only records feature usage, never content. For details, see [Keys and privacy](/en/privacy#umami-analytics).
