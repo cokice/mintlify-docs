@@ -10,64 +10,305 @@
   },
   "favicon": "/favicon.svg",
   "navigation": {
-    "pages": [
+    "languages": [
       {
-        "group": "开始使用",
-        "pages": [
-          "index",
-          "quickstart"
-        ]
-      },
-      {
-        "group": "使用指南",
-        "pages": [
-          "features/analysis",
-          "features/word-detail",
-          "features/daily-sentence",
-          "features/image-recognition",
-          "features/text-to-speech",
-          "features/ai-assistant",
-          "features/settings"
-        ]
-      },
-      {
-        "group": "配置与部署",
-        "pages": [
-          "configuration",
-          "deployment",
-          "ai-deploy",
-          "privacy"
-        ]
-      },
-      {
-        "group": "开发",
-        "pages": [
-          "development",
-          "api-reference"
-        ]
-      },
-      {
-        "group": "更多",
-        "pages": [
-          "troubleshooting",
-          "license"
-        ]
-      }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "在线体验",
-          "href": "https://nihongodemo.howen.ink/",
-          "icon": "arrow-up-right-from-square"
+        "language": "zh-Hans",
+        "default": true,
+        "groups": [
+          {
+            "group": "开始使用",
+            "pages": [
+              "index",
+              "quickstart"
+            ]
+          },
+          {
+            "group": "使用指南",
+            "pages": [
+              "features/analysis",
+              "features/word-detail",
+              "features/daily-sentence",
+              "features/image-recognition",
+              "features/text-to-speech",
+              "features/ai-assistant",
+              "features/settings"
+            ]
+          },
+          {
+            "group": "配置与部署",
+            "pages": [
+              "configuration",
+              "deployment",
+              "ai-deploy",
+              "privacy"
+            ]
+          },
+          {
+            "group": "开发",
+            "pages": [
+              "development",
+              "api-reference"
+            ]
+          },
+          {
+            "group": "更多",
+            "pages": [
+              "troubleshooting",
+              "license"
+            ]
+          }
+        ],
+        "global": {
+          "anchors": [
+            {
+              "anchor": "在线体验",
+              "href": "https://nihongodemo.howen.ink/",
+              "icon": "arrow-up-right-from-square"
+            },
+            {
+              "anchor": "GitHub",
+              "href": "https://github.com/cokice/japanese-analyzer",
+              "icon": "github"
+            }
+          ]
         },
-        {
-          "anchor": "GitHub",
-          "href": "https://github.com/cokice/japanese-analyzer",
-          "icon": "github"
+        "navbar": {
+          "links": [
+            {
+              "label": "GitHub",
+              "href": "https://github.com/cokice/japanese-analyzer"
+            }
+          ],
+          "primary": {
+            "type": "button",
+            "label": "打开应用",
+            "href": "https://nihongodemo.howen.ink/"
+          }
         }
-      ]
-    }
+      },
+      {
+        "language": "zh-Hant",
+        "groups": [
+          {
+            "group": "開始使用",
+            "pages": [
+              "zh-Hant/index",
+              "zh-Hant/quickstart"
+            ]
+          },
+          {
+            "group": "使用指南",
+            "pages": [
+              "zh-Hant/features/analysis",
+              "zh-Hant/features/word-detail",
+              "zh-Hant/features/daily-sentence",
+              "zh-Hant/features/image-recognition",
+              "zh-Hant/features/text-to-speech",
+              "zh-Hant/features/ai-assistant",
+              "zh-Hant/features/settings"
+            ]
+          },
+          {
+            "group": "設定與部署",
+            "pages": [
+              "zh-Hant/configuration",
+              "zh-Hant/deployment",
+              "zh-Hant/ai-deploy",
+              "zh-Hant/privacy"
+            ]
+          },
+          {
+            "group": "開發",
+            "pages": [
+              "zh-Hant/development",
+              "zh-Hant/api-reference"
+            ]
+          },
+          {
+            "group": "更多",
+            "pages": [
+              "zh-Hant/troubleshooting",
+              "zh-Hant/license"
+            ]
+          }
+        ],
+        "global": {
+          "anchors": [
+            {
+              "anchor": "線上體驗",
+              "href": "https://nihongodemo.howen.ink/",
+              "icon": "arrow-up-right-from-square"
+            },
+            {
+              "anchor": "GitHub",
+              "href": "https://github.com/cokice/japanese-analyzer",
+              "icon": "github"
+            }
+          ]
+        },
+        "navbar": {
+          "links": [
+            {
+              "label": "GitHub",
+              "href": "https://github.com/cokice/japanese-analyzer"
+            }
+          ],
+          "primary": {
+            "type": "button",
+            "label": "開啟應用程式",
+            "href": "https://nihongodemo.howen.ink/"
+          }
+        }
+      },
+      {
+        "language": "en",
+        "groups": [
+          {
+            "group": "Get started",
+            "pages": [
+              "en/index",
+              "en/quickstart"
+            ]
+          },
+          {
+            "group": "User guide",
+            "pages": [
+              "en/features/analysis",
+              "en/features/word-detail",
+              "en/features/daily-sentence",
+              "en/features/image-recognition",
+              "en/features/text-to-speech",
+              "en/features/ai-assistant",
+              "en/features/settings"
+            ]
+          },
+          {
+            "group": "Configuration and deployment",
+            "pages": [
+              "en/configuration",
+              "en/deployment",
+              "en/ai-deploy",
+              "en/privacy"
+            ]
+          },
+          {
+            "group": "Development",
+            "pages": [
+              "en/development",
+              "en/api-reference"
+            ]
+          },
+          {
+            "group": "More",
+            "pages": [
+              "en/troubleshooting",
+              "en/license"
+            ]
+          }
+        ],
+        "global": {
+          "anchors": [
+            {
+              "anchor": "Live demo",
+              "href": "https://nihongodemo.howen.ink/",
+              "icon": "arrow-up-right-from-square"
+            },
+            {
+              "anchor": "GitHub",
+              "href": "https://github.com/cokice/japanese-analyzer",
+              "icon": "github"
+            }
+          ]
+        },
+        "navbar": {
+          "links": [
+            {
+              "label": "GitHub",
+              "href": "https://github.com/cokice/japanese-analyzer"
+            }
+          ],
+          "primary": {
+            "type": "button",
+            "label": "Open app",
+            "href": "https://nihongodemo.howen.ink/"
+          }
+        }
+      },
+      {
+        "language": "ko",
+        "groups": [
+          {
+            "group": "시작하기",
+            "pages": [
+              "ko/index",
+              "ko/quickstart"
+            ]
+          },
+          {
+            "group": "사용 가이드",
+            "pages": [
+              "ko/features/analysis",
+              "ko/features/word-detail",
+              "ko/features/daily-sentence",
+              "ko/features/image-recognition",
+              "ko/features/text-to-speech",
+              "ko/features/ai-assistant",
+              "ko/features/settings"
+            ]
+          },
+          {
+            "group": "설정 및 배포",
+            "pages": [
+              "ko/configuration",
+              "ko/deployment",
+              "ko/ai-deploy",
+              "ko/privacy"
+            ]
+          },
+          {
+            "group": "개발",
+            "pages": [
+              "ko/development",
+              "ko/api-reference"
+            ]
+          },
+          {
+            "group": "더 보기",
+            "pages": [
+              "ko/troubleshooting",
+              "ko/license"
+            ]
+          }
+        ],
+        "global": {
+          "anchors": [
+            {
+              "anchor": "온라인 데모",
+              "href": "https://nihongodemo.howen.ink/",
+              "icon": "arrow-up-right-from-square"
+            },
+            {
+              "anchor": "GitHub",
+              "href": "https://github.com/cokice/japanese-analyzer",
+              "icon": "github"
+            }
+          ]
+        },
+        "navbar": {
+          "links": [
+            {
+              "label": "GitHub",
+              "href": "https://github.com/cokice/japanese-analyzer"
+            }
+          ],
+          "primary": {
+            "type": "button",
+            "label": "앱 열기",
+            "href": "https://nihongodemo.howen.ink/"
+          }
+        }
+      }
+    ]
   },
   "logo": {
     "light": "https://raw.githubusercontent.com/cokice/japanese-analyzer/master/public/logo/logo-text.png",

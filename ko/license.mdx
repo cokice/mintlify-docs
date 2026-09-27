@@ -1,0 +1,51 @@
+---
+title: "라이선스"
+description: "이 프로젝트는 AGPL-3.0-only 라이선스를 따르며, 이전 MIT 버전은 원래 라이선스를 유지합니다."
+icon: "scale-balanced"
+---
+
+라이선스 전환 커밋부터 japanese-analyzer는 전체가 [GNU Affero General Public License v3.0 only(AGPL-3.0-only)](https://github.com/cokice/japanese-analyzer/blob/master/LICENSE)로 배포됩니다. 상업적 이용 금지, 상용 라이선스 구매 강제 등 추가 제한은 두지 않습니다.
+
+## 버전 경계
+
+| 태그 | 의미 |
+| --- | --- |
+| `mit-final` | 전환 전 마지막으로 전체가 MIT였던 스냅숏. 커밋 `fb57ddc`를 고정으로 가리킵니다. |
+| `agpl-3.0-start` | 처음으로 전체가 AGPL-3.0-only를 적용한 커밋. |
+
+`mit-final` 및 그 이전에 MIT로 공개된 코드는 계속 MIT 라이선스를 유지합니다. 새 라이선스가 기존 MIT 라이선스를 소급해 철회하지 않습니다. 원래의 저작권 및 라이선스 전문은 [`LICENSES/MIT-legacy.txt`](https://github.com/cokice/japanese-analyzer/blob/master/LICENSES/MIT-legacy.txt)에 보존되어 있습니다.
+
+## 할 수 있는 것
+
+<CardGroup cols={2}>
+  <Card title="개인 및 상업적 이용" icon="circle-check">
+    AGPL은 개인 이용과 상업적 이용을 허용하며, 프로젝트에서 상용 라이선스를 구매할 필요가 없습니다.
+  </Card>
+  <Card title="수정 및 배포" icon="code-fork">
+    코드를 수정해 배포할 수 있지만, AGPL의 소스 코드 제공 의무를 지켜야 합니다.
+  </Card>
+</CardGroup>
+
+## 해야 하는 것
+
+<Steps>
+  <Step title="배포할 때 소스 코드 제공">
+    실행 가능한 버전(예: Docker 이미지)을 배포할 때는 AGPL 제6조에 따라 대응 소스 코드를 제공하고, 라이선스와 저작권 고지를 유지하세요.
+  </Step>
+  <Step title="네트워크 서비스를 제공할 때 소스 코드 제공">
+    이 프로그램을 수정해 네트워크로 다른 사람에게 서비스를 제공할 때는 AGPL 제13조에 따라 사용자가 수정 버전의 대응 소스 코드를 무료로 받을 수 있는 방법을 눈에 띄게 제공하세요.
+  </Step>
+  <Step title="소스 코드 링크 업데이트">
+    앱 화면 오른쪽 위에 GitHub 소스 코드 링크가 있습니다. 수정 버전을 배포할 때는 수정 사항이 반영되지 않은 upstream 링크를 그대로 두지 말고, 실제로 실행 중인 버전의 소스 코드를 가리키도록 바꾸세요.
+  </Step>
+</Steps>
+
+<Warning>
+  대응 소스 코드는 수정 사항과 빌드, 설치, 실행 스크립트를 포함해 실제로 실행 중인 버전과 일치해야 합니다. 수정 사항이 없는 upstream 저장소에만 링크하는 것으로는 요건을 충족하지 않습니다. API 키, 비밀번호 같은 배포 자격 증명은 소스 코드 패키지에 넣지 말고 구성 템플릿만 제공하세요.
+</Warning>
+
+## 기여
+
+새 기여에는 현재 프로젝트와 호환되는 라이선스를 사용하고, 가져온 서드 파티 코드의 고지를 유지하세요. 이 프로젝트는 기여자에게 저작권 양도를 요구하지 않습니다. 의존성, 글꼴 등 서드 파티 자료는 각자의 라이선스를 유지합니다.
+
+전체 설명은 저장소의 [`LICENSING.md`](https://github.com/cokice/japanese-analyzer/blob/master/LICENSING.md)와 [`NOTICE`](https://github.com/cokice/japanese-analyzer/blob/master/NOTICE)를 참고하세요. 이 페이지는 설명을 위한 것이며, [AGPL 전문](https://github.com/cokice/japanese-analyzer/blob/master/LICENSE)이 우선합니다.

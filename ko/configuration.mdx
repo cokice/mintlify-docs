@@ -1,0 +1,106 @@
+---
+title: "구성"
+description: "모델 제공업체, 상위 API 주소, 접속 비밀번호, Umami 통계를 구성합니다."
+icon: "sliders"
+---
+
+앱의 모든 서버 측 구성은 환경 변수로 합니다. 로컬 개발에서는 `.env.local`, Docker 배포에서는 `.env.production`을 사용하고, Vercel에서는 프로젝트의 **Settings** → **Environment Variables**에서 설정합니다.
+
+## 환경 변수
+
+| 변수 | 필수 여부 | 용도 |
+| --- | --- | --- |
+| `DEEPSEEK_API_KEY` | 권장 | DeepSeek API 키. 기본 분석, 번역, 뜻풀이, 이미지 인식, AI 도우미, 오늘의 문장에 사용합니다. |
+| `GEMINI_API_KEY` | 선택 | Gemini API 키. Gemini 텍스트 모델, 이미지 인식, Gemini TTS에 사용합니다. |
+| `DEEPSEEK_API_URL` | 선택 | DeepSeek의 OpenAI 호환 API 주소. 비워 두면 공식 주소를 사용합니다. |
+| `GEMINI_API_URL` | 선택 | Gemini의 OpenAI 호환 API 주소. 비워 두면 공식 주소를 사용합니다. |
+| `CODE` | 선택 | 접속 비밀번호. 비워 두면 비밀번호가 필요 없습니다. |
+| `NEXT_PUBLIC_UMAMI_SRC` | 선택 | Umami 통계 스크립트 주소. |
+| `NEXT_PUBLIC_UMAMI_WEBSITE_ID` | 선택 | Umami Website ID. `NEXT_PUBLIC_UMAMI_SRC`와 함께 입력해야 합니다. |
+
+<Info>
+  `DEEPSEEK_API_KEY`와 `GEMINI_API_KEY` 중 하나 이상을 입력하세요. 둘 다 입력하지 않으면 방문자가 **설정**에서 자신의 키를 입력해야 앱을 사용할 수 있고, 홈 화면의 오늘의 문장도 내장된 예비 문장으로 바뀝니다.
+</Info>
+
+전체 예시:
+
+```env .env.production
+# DeepSeek: 기본 텍스트 제공업체이며 이미지 인식도 담당
+DEEPSEEK_API_KEY=your_deepseek_api_key
+DEEPSEEK_API_URL=https://api.deepseek.com/chat/completions
+
+# Gemini: 선택 사항, Gemini 모델과 Gemini TTS 사용
+GEMINI_API_KEY=your_gemini_api_key
+GEMINI_API_URL=https://generativelanguage.googleapis.com/v1beta/openai/chat/completions
+
+# 선택 사항: 접속 비밀번호
+CODE=
+
+# 선택 사항: Umami 통계
+NEXT_PUBLIC_UMAMI_SRC=
+NEXT_PUBLIC_UMAMI_WEBSITE_ID=
+```
+
+## 모델 제공업체
+
+앱은 OpenAI 호환 Chat Completions API로 모델을 호출합니다.
+
+| 제공업체 | 사용 가능한 모델 | 공식 API 주소 |
+| --- | --- | --- |
+| DeepSeek(기본) | `deepseek-flash` | `https://api.deepseek.com/chat/completions` |
+| Gemini | `gemini-flash-latest`(기본), `gemini-flash-lite-latest` | `https://generativelanguage.googleapis.com/v1beta/openai/chat/completions` |
+
+서버는 제공업체에 따라 요청 매개변수를 자동으로 조정합니다.
+
+- **DeepSeek**: `json_object` 형식으로 구조화된 결과를 받고, 사고 모드를 끕니다.
+- **Gemini**: 엄격한 JSON Schema로 구조화된 결과를 받습니다. `gemini-flash-latest`는 `low` 추론 단계를, `gemini-flash-lite-latest`는 `minimal` 추론 단계를 사용합니다.
+
+### 사용자 지정 API 주소 사용
+
+프록시나 호환 게이트웨이를 통해 모델 제공업체에 접속한다면 `DEEPSEEK_API_URL` 또는 `GEMINI_API_URL`을 설정할 수 있습니다. 주소는 Base URL이 아니라 전체 Chat Completions 엔드포인트여야 합니다.
+
+```env
+DEEPSEEK_API_URL=https://your-gateway.example.com/v1/chat/completions
+```
+
+<Warning>
+  API 주소는 서버 환경 변수에서만 설정할 수 있습니다. 브라우저 요청에 사용자 지정 API URL이 포함되면 서버는 요청을 바로 거부합니다. 앱이 임의 주소로 요청을 전달하는 프록시로 악용되는 것을 막기 위해서입니다.
+</Warning>
+
+### 요청 시간 제한
+
+| 상황 | 시간 제한 |
+| --- | --- |
+| 상위 API 응답 대기 | 60초 |
+| 스트리밍 출력에서 두 응답 조각 사이의 최대 간격 | 90초 |
+| 상위 API가 오류를 반환한 뒤 오류 내용 읽기 | 15초 |
+
+## 접속 비밀번호
+
+`CODE`를 설정하면 방문자는 사이트를 열 때 먼저 접속 비밀번호를 입력해야 합니다.
+
+```env
+CODE=choose-a-private-password
+```
+
+- 인증에 성공하면 서버가 HttpOnly 세션 Cookie `ja_session`을 기록합니다. 유효 기간은 7일입니다.
+- 세션 토큰은 `CODE`를 키로 사용해 HMAC-SHA256으로 서명합니다. `CODE`를 바꾸면 로그인된 모든 세션이 즉시 무효가 됩니다.
+- 인증하지 않으면 분석, 번역, 뜻풀이, 이미지 인식, 음성 읽기, 대화, 오늘의 문장 등의 API가 모두 `401`을 반환합니다.
+- 프로덕션 환경에서는 Cookie에 `Secure` 플래그가 붙으므로 HTTPS로 접속해야 합니다.
+
+<Note>
+  `CODE`는 간단한 비공개 배포에서 모르는 사람이 API 사용량을 소모하지 못하게 막는 용도입니다. 완전한 계정 및 권한 시스템을 대신할 수는 없습니다.
+</Note>
+
+## Umami 통계
+
+다음 두 변수를 모두 입력하면 앱이 Umami 통계 스크립트를 불러옵니다.
+
+```env
+NEXT_PUBLIC_UMAMI_SRC=https://cloud.umami.is/script.js
+NEXT_PUBLIC_UMAMI_WEBSITE_ID=your_umami_website_id
+```
+
+둘 중 하나라도 비어 있으면 앱은 Umami를 불러오지 않습니다. 두 변수는 서버가 런타임에 읽으므로, 값을 바꾼 뒤 서비스를 다시 시작하면 적용됩니다. Docker 배포에서도 이미지를 다시 빌드할 필요가 없습니다.
+
+통계는 기능 사용량만 기록하며 내용은 전혀 기록하지 않습니다. 자세한 내용은 [API 키와 개인정보](/ko/privacy#umami-통계)를 참고하세요.
