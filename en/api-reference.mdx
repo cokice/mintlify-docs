@@ -49,9 +49,19 @@ On error, routes return the appropriate HTTP status code and an error in a unifo
 { "error": { "message": "未提供API密钥，请在设置中配置API密钥或联系管理员配置服务器密钥" } }
 ```
 
+- `message` is always the original Simplified Chinese text and does not depend on `X-App-Locale`. The frontend translates known errors into the interface language before showing them.
+- Raw error messages from the model provider are forwarded as-is, and the frontend doesn't translate them.
+- When the model provider takes longer than 60 seconds, non-streaming requests return `504` with 「上游接口请求超时，请稍后重试。」
+
 ### Streaming responses
 
 When streaming output is on, routes forward the upstream OpenAI-compatible Server-Sent Events stream directly, with a `Content-Type` of `text/event-stream`. When it's off, they return the upstream's complete JSON response.
+
+If streaming output produces no new data for 90 seconds, the server sends an error event in the stream and then closes the connection:
+
+```text
+data: {"error":{"message":"上游流式响应空闲超时，请重试。"}}
+```
 
 ## Routes
 

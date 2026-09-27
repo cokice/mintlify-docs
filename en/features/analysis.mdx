@@ -87,6 +87,11 @@ When you copy text from a web page or a Markdown document, the app cleans up the
 | Truncated by the model (`finish_reason: length`) | The output was too long. Shorten the text and analyze it again. |
 | Stopped by the model's content filter | The model provider refused the content. |
 | Did not preserve the original text | The tokens the model returned don't match the original text. Analyze it again. |
-| The upstream API timed out | The server waited 60 seconds with no upstream response, or streaming output produced no new content for 90 seconds. Try again later. |
+| The upstream API timed out. Please try again later. | The model provider didn't respond within 60 seconds. Try again later. |
+| The upstream stream stopped responding. Please try again. | Streaming output produced no new content for 90 seconds. Try again, or turn off **Streaming output** in **Settings**. |
+
+<Note>
+  Error messages appear in your interface language. Raw error messages from the model provider, such as `HTTP 429: upstream quota exceeded`, stay in their original wording to help you troubleshoot.
+</Note>
 
 For more issues, see [Troubleshooting](/en/troubleshooting).

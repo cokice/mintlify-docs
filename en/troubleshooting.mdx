@@ -4,6 +4,10 @@ description: "Fix common issues with deployment, keys, analysis, text-to-speech,
 icon: "circle-question"
 ---
 
+<Info>
+  Error messages appear in your interface language. This page quotes them as they appear in the English interface. Raw error messages from the model provider, such as `HTTP 429: ...`, are not translated.
+</Info>
+
 ## Deployment and access
 
 <AccordionGroup>
@@ -48,7 +52,11 @@ icon: "circle-question"
   </Accordion>
 
   <Accordion title="The message says “The upstream API timed out”">
-    The upstream API didn't respond within 60 seconds, or streaming output produced no new content for more than 90 seconds. Check the network between your server and the model provider, then try again later.
+    The model provider didn't respond within 60 seconds. Check the network between your server and the model provider, then try again later.
+  </Accordion>
+
+  <Accordion title="The message says “The upstream stream stopped responding”">
+    Streaming output received no new content for more than 90 seconds. Analyze the text again. If this happens often, turn off **Streaming output** in **Settings**.
   </Accordion>
 
   <Accordion title="Segmentation is wrong and one word is split into several pieces">
