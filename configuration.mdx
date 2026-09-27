@@ -1,90 +1,106 @@
 ---
-title: "配置说明"
-description: "配置模型服务、访问密码、浏览器设置和 Umami 统计。"
-icon: "sliders-horizontal"
+title: "配置"
+description: "配置模型服务商、上游接口地址、访问密码和 Umami 统计。"
+icon: "sliders"
 ---
 
-应用支持 DeepSeek 和 Gemini。你可以通过服务器环境变量提供默认配置，也可以让每位使用者在浏览器中填写自己的 API Key。
-
-## 模型选择
-
-| 能力 | 模型或服务 | 配置要求 |
-| --- | --- | --- |
-| DeepSeek 文本解析 | `deepseek-v4-flash` / `deepseek-v4-pro` | 需要 `DEEPSEEK_API_KEY`。默认关闭思考模式。 |
-| Gemini 文本解析 | `gemini-3.6-flash` / `gemini-3.5-flash-lite` | 需要 `GEMINI_API_KEY`。请求使用最低推理档。 |
-| 图片识别 | Gemini | 需要 `GEMINI_API_KEY`。DeepSeek 模式下会关闭图片上传和粘贴识别。 |
-| Edge TTS | Edge TTS | 默认朗读服务，无需 Gemini API Key。 |
-| Gemini TTS | Gemini TTS | 需要 `GEMINI_API_KEY`。 |
-
-<Info>
-  默认文本服务商是 DeepSeek。你可以在应用右上角的设置中切换服务商和模型。
-</Info>
+应用的所有服务端配置都通过环境变量完成。本地开发使用 `.env.local`，Docker 部署使用 `.env.production`，Vercel 在项目的 **Settings** → **Environment Variables** 中配置。
 
 ## 环境变量
 
 | 变量 | 是否必填 | 用途 |
 | --- | --- | --- |
-| `DEEPSEEK_API_KEY` | 推荐 | DeepSeek API Key。用于默认文本解析。 |
-| `DEEPSEEK_API_URL` | 可选 | DeepSeek OpenAI 兼容接口地址。留空时使用官方默认地址。 |
-| `GEMINI_API_KEY` | 可选 | Gemini API Key。用于 Gemini 文本解析、图片识别和 Gemini TTS。 |
-| `GEMINI_API_URL` | 可选 | Gemini OpenAI 兼容接口地址。留空时使用官方默认地址。 |
-| `CODE` | 可选 | 访问密码。设置后，使用者需要先输入密码。 |
-| `NEXT_PUBLIC_UMAMI_SRC` | 可选 | Umami 脚本地址，例如 `https://cloud.umami.is/script.js`。 |
-| `NEXT_PUBLIC_UMAMI_WEBSITE_ID` | 可选 | Umami Website ID。需要与 `NEXT_PUBLIC_UMAMI_SRC` 同时配置。 |
+| `DEEPSEEK_API_KEY` | 推荐 | DeepSeek API Key。用于默认的解析、翻译、释义、图片识别、AI 助手和今日一句。 |
+| `GEMINI_API_KEY` | 可选 | Gemini API Key。用于 Gemini 文本模型、图片识别和 Gemini TTS。 |
+| `DEEPSEEK_API_URL` | 可选 | DeepSeek 的 OpenAI 兼容接口地址。留空时使用官方地址。 |
+| `GEMINI_API_URL` | 可选 | Gemini 的 OpenAI 兼容接口地址。留空时使用官方地址。 |
+| `CODE` | 可选 | 访问密码。留空时不需要密码。 |
+| `NEXT_PUBLIC_UMAMI_SRC` | 可选 | Umami 统计脚本地址。 |
+| `NEXT_PUBLIC_UMAMI_WEBSITE_ID` | 可选 | Umami Website ID。需要与 `NEXT_PUBLIC_UMAMI_SRC` 同时填写。 |
 
-下面是一份可用于本地开发的配置示例：
+<Info>
+  `DEEPSEEK_API_KEY` 和 `GEMINI_API_KEY` 至少填写一个。两个都不填时，访客必须在**设置**中填写自己的 Key 才能使用，首页的今日一句也会改用内置备用句。
+</Info>
 
-```env
+完整示例：
+
+```env .env.production
+# DeepSeek：默认文本服务商，也负责图片识别
 DEEPSEEK_API_KEY=your_deepseek_api_key
 DEEPSEEK_API_URL=https://api.deepseek.com/chat/completions
 
+# Gemini：可选，启用 Gemini 模型和 Gemini TTS
 GEMINI_API_KEY=your_gemini_api_key
 GEMINI_API_URL=https://generativelanguage.googleapis.com/v1beta/openai/chat/completions
 
+# 可选：访问密码
 CODE=
+
+# 可选：Umami 统计
 NEXT_PUBLIC_UMAMI_SRC=
 NEXT_PUBLIC_UMAMI_WEBSITE_ID=
 ```
 
-## 服务器配置与浏览器配置
+## 模型服务商
 
-### 服务器默认 Key
+应用通过 OpenAI 兼容的 Chat Completions 接口调用模型。
 
-`DEEPSEEK_API_KEY` 和 `GEMINI_API_KEY` 作为服务器端默认密钥使用，不会发送到前端。适合你为所有使用者提供统一的模型服务。
+| 服务商 | 可用模型 | 官方接口地址 |
+| --- | --- | --- |
+| DeepSeek（默认） | `deepseek-flash` | `https://api.deepseek.com/chat/completions` |
+| Gemini | `gemini-flash-latest`（默认）、`gemini-flash-lite-latest` | `https://generativelanguage.googleapis.com/v1beta/openai/chat/completions` |
 
-### 使用者自己的 Key
+服务端会根据服务商自动调整请求参数：
 
-使用者可以在右上角的设置中分别填写 Gemini 和 DeepSeek API Key。应用只把这些设置保存在当前浏览器中。
+- **DeepSeek**：使用 `json_object` 格式返回结构化结果，并关闭思考模式。
+- **Gemini**：使用严格的 JSON Schema 返回结构化结果。`gemini-flash-latest` 使用 `low` 推理档，`gemini-flash-lite-latest` 使用 `minimal` 推理档。
+
+### 使用自定义接口地址
+
+如果你通过代理或兼容网关访问模型服务商，可以设置 `DEEPSEEK_API_URL` 或 `GEMINI_API_URL`。地址必须是完整的 Chat Completions 端点，而不是 Base URL。
+
+```env
+DEEPSEEK_API_URL=https://your-gateway.example.com/v1/chat/completions
+```
 
 <Warning>
-  不要提交 `.env.local` 或 `.env.production`。也不要把 API Key 写入镜像、前端代码或日志。
+  接口地址只能在服务器环境变量中配置。浏览器请求中携带自定义 API URL 时，服务端会直接拒绝，以防止应用被当作任意地址的转发代理。
 </Warning>
+
+### 请求超时
+
+| 场景 | 超时时间 |
+| --- | --- |
+| 等待上游接口响应 | 60 秒 |
+| 流式输出中两段内容的最长间隔 | 90 秒 |
+| 上游返回错误后，读取错误详情 | 15 秒 |
 
 ## 访问密码
 
-设置 `CODE` 后，应用会显示访问密码页面。留空时不启用访问控制。
+设置 `CODE` 后，访客打开网站时需要先输入访问密码。
 
 ```env
 CODE=choose-a-private-password
 ```
 
-该配置适合简单的私有部署。它不能替代完整的身份验证或权限系统。
+- 验证通过后，服务端写入一个 HttpOnly 会话 Cookie `ja_session`，有效期 7 天。
+- 会话令牌使用 `CODE` 作为密钥进行 HMAC-SHA256 签名。修改 `CODE` 后，所有已登录的会话立即失效。
+- 未通过验证时，解析、翻译、释义、图片识别、朗读、聊天和今日一句等接口都会返回 `401`。
+- 生产环境中 Cookie 带有 `Secure` 标记，需要通过 HTTPS 访问。
+
+<Note>
+  `CODE` 适合简单的私有部署，用来防止陌生人消耗你的 API 额度。它不能替代完整的账户和权限系统。
+</Note>
 
 ## Umami 统计
 
-同时配置以下两个变量后，应用会加载 Umami：
+同时填写以下两个变量后，应用会加载 Umami 统计脚本：
 
 ```env
 NEXT_PUBLIC_UMAMI_SRC=https://cloud.umami.is/script.js
 NEXT_PUBLIC_UMAMI_WEBSITE_ID=your_umami_website_id
 ```
 
-如果两个变量都为空，应用不会加载 Umami。
+任意一个为空时，应用不加载 Umami。两个变量由服务端在运行时读取，修改后重启服务即可生效，Docker 部署无需重新构建镜像。
 
-启用后，应用只记录功能和模型相关元数据，例如模型服务商、模型名称、是否使用图片识别或 TTS。事件不包含：
-
-- 输入文本或图片内容
-- 图片提取结果
-- 词汇和翻译结果
-- 错误内容
-- API Key
+统计只记录功能用量，不记录任何内容。详见[密钥与隐私](/privacy#umami-统计)。

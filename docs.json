@@ -2,7 +2,7 @@
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
   "name": "日本語文章解析",
-  "description": "面向中文学习者的日语句子解析工具文档。",
+  "description": "日语句子，逐词读懂。日本語文章解析的使用、配置、部署与开发文档。",
   "colors": {
     "primary": "#6e4dd3",
     "light": "#7d5fd7",
@@ -19,16 +19,38 @@
         ]
       },
       {
-        "group": "配置与部署",
+        "group": "使用指南",
         "pages": [
-          "configuration",
-          "deployment"
+          "features/analysis",
+          "features/word-detail",
+          "features/daily-sentence",
+          "features/image-recognition",
+          "features/text-to-speech",
+          "features/ai-assistant",
+          "features/settings"
         ]
       },
       {
-        "group": "开发指南",
+        "group": "配置与部署",
         "pages": [
-          "development"
+          "configuration",
+          "deployment",
+          "ai-deploy",
+          "privacy"
+        ]
+      },
+      {
+        "group": "开发",
+        "pages": [
+          "development",
+          "api-reference"
+        ]
+      },
+      {
+        "group": "更多",
+        "pages": [
+          "troubleshooting",
+          "license"
         ]
       }
     ],

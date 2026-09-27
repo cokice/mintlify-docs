@@ -1,81 +1,132 @@
 ---
-title: "部署指南"
-description: "使用 Vercel、Docker Compose 或 Docker 部署日本語文章解析。"
+title: "部署"
+description: "使用 Vercel、Docker Compose 或 docker run 部署日本語文章解析。"
 icon: "server"
 ---
 
-你可以把应用部署到 Vercel，也可以使用 Docker 在 VPS 上运行。Docker Hub 镜像同时支持 `linux/amd64` 和 `linux/arm64`。
+你可以把应用部署到 Vercel，也可以用 Docker 运行在自己的服务器上。如果你想让 AI 编程助手代劳，请参阅[让 AI Agent 部署](/ai-deploy)。
+
+| 方式 | 适合场景 |
+| --- | --- |
+| [Vercel](#部署到-vercel) | 没有服务器，想最快上线。 |
+| [Docker Compose](#使用-docker-compose) | 在 VPS 上长期运行，推荐方式。 |
+| [docker run](#使用-docker-run) | 不想使用 Compose 文件。 |
 
 ## 部署到 Vercel
 
 <Steps>
   <Step title="导入仓库">
-    Fork 仓库，或在 Vercel 中导入 `cokice/japanese-analyzer`。
+    点击下方按钮，或在 Vercel 中导入 `cokice/japanese-analyzer`。
+
+    <Card title="Deploy with Vercel" icon="triangle" href="https://vercel.com/new/clone?repository-url=https://github.com/cokice/japanese-analyzer">
+      从 GitHub 仓库创建一个新的 Vercel 项目。
+    </Card>
   </Step>
 
   <Step title="配置环境变量">
-    在项目中打开 **Settings** → **Environment Variables**。
+    在项目中打开 **Settings** → **Environment Variables**，至少添加 `DEEPSEEK_API_KEY`。
 
-    至少添加 `DEEPSEEK_API_KEY`。如果需要图片识别或 Gemini TTS，再添加 `GEMINI_API_KEY`。
-  </Step>
-
-  <Step title="添加可选配置">
-    如需访问密码，添加 `CODE`。如需 Umami，同时添加 `NEXT_PUBLIC_UMAMI_SRC` 和 `NEXT_PUBLIC_UMAMI_WEBSITE_ID`。
+    需要 Gemini 模型或 Gemini TTS 时，再添加 `GEMINI_API_KEY`。需要访问密码时，添加 `CODE`。完整列表见[配置](/configuration)。
   </Step>
 
   <Step title="重新部署">
-    触发一次新部署，然后打开 Vercel 提供的访问地址。
+    触发一次新部署，然后打开 Vercel 分配的域名。
   </Step>
 </Steps>
 
-<Card title="在 Vercel 中部署" icon="triangle" href="https://vercel.com/new/clone?repository-url=https://github.com/cokice/japanese-analyzer">
-  从 GitHub 仓库创建一个新的 Vercel 项目。
-</Card>
+<Tip>
+  如果你已经安装并登录了 Vercel CLI，也可以在仓库目录中运行 `vercel`，用 `vercel env add` 添加变量，再运行 `vercel --prod` 发布。
+</Tip>
 
 ## 使用 Docker Compose
 
-Docker Compose 更适合长期维护的 VPS 部署。
+官方镜像 `howenhowen/japanese-analyzer` 支持 `linux/amd64` 和 `linux/arm64`。容器监听 `3002` 端口。
 
 <Steps>
-  <Step title="准备配置">
-    从仓库中的模板创建生产环境变量文件。
-
+  <Step title="准备目录">
     ```bash
-    cp .env.production.example .env.production
+    mkdir -p ~/japanese-analyzer && cd ~/japanese-analyzer
+    curl -fsSL https://raw.githubusercontent.com/cokice/japanese-analyzer/master/docker-compose.hub.yml -o docker-compose.yml
     ```
 
-    编辑 `.env.production` 并填写需要的 API Key。
+    如果你已经克隆了仓库，可以直接使用其中的 `docker-compose.hub.yml`。
+  </Step>
+
+  <Step title="创建配置文件">
+    创建 `.env.production`，至少填写一个 Key：
+
+    ```env .env.production
+    DEEPSEEK_API_KEY=your_deepseek_api_key
+    GEMINI_API_KEY=
+    CODE=
+    ```
+
+    限制文件权限，避免其他用户读取：
+
+    ```bash
+    chmod 600 .env.production
+    ```
   </Step>
 
   <Step title="启动服务">
     ```bash
-    docker compose -f docker-compose.hub.yml up -d
+    docker compose up -d
     ```
   </Step>
 
-  <Step title="检查状态">
+  <Step title="验证">
     ```bash
-    docker compose -f docker-compose.hub.yml ps
-    docker compose -f docker-compose.hub.yml logs -f
+    docker compose ps
+    docker compose logs --tail 50
+    curl -fsS -o /dev/null -w "%{http_code}\n" http://127.0.0.1:3002
     ```
+
+    容器状态为 `running`、日志没有报错、`curl` 返回 `200`，即部署成功。打开 `http://服务器IP:3002` 访问应用。
   </Step>
 </Steps>
 
-应用默认监听宿主机的 `3002` 端口。打开：
+Compose 文件已设置 `restart: unless-stopped`，服务器重启后容器会自动启动。
 
-```text
-http://your-vps-ip:3002
+<Accordion title="docker-compose.hub.yml 内容">
+  ```yaml
+  services:
+    japanese-analyzer:
+      image: ${DOCKER_IMAGE:-howenhowen/japanese-analyzer:latest}
+      env_file:
+        - .env.production
+      environment:
+        NODE_ENV: production
+        PORT: "3002"
+        HOSTNAME: 0.0.0.0
+      ports:
+        - "3002:3002"
+      restart: unless-stopped
+  ```
+
+  设置 `DOCKER_IMAGE` 环境变量可以指定其他镜像标签，例如某个版本标签或 `sha-<commit>` 标签。可用标签见[镜像标签](/development#镜像标签)。
+</Accordion>
+
+### 修改端口
+
+如果宿主机的 `3002` 端口已被占用，修改 `ports` 左侧的宿主机端口，容器内端口保持不变：
+
+```yaml
+ports:
+  - "3102:3002"
 ```
 
-## 使用 Docker 运行
+### 从源码构建镜像
 
-先拉取多架构镜像：
+仓库中的 `docker-compose.yml` 会从本地 `Dockerfile` 构建镜像：
 
 ```bash
-docker pull howenhowen/japanese-analyzer:latest
+git clone https://github.com/cokice/japanese-analyzer.git
+cd japanese-analyzer
+cp .env.production.example .env.production   # 填入 Key
+docker compose up -d --build
 ```
 
-启动容器：
+## 使用 docker run
 
 ```bash
 docker run -d \
@@ -83,18 +134,16 @@ docker run -d \
   --restart unless-stopped \
   -p 3002:3002 \
   -e DEEPSEEK_API_KEY="your_deepseek_api_key" \
-  -e GEMINI_API_KEY="your_gemini_api_key" \
+  -e GEMINI_API_KEY="" \
   -e CODE="" \
   howenhowen/japanese-analyzer:latest
 ```
 
-如果只使用 DeepSeek 文本解析，可以省略 `GEMINI_API_KEY`。如果不需要访问密码，保持 `CODE=""`。
-
-如需启用 Umami，额外添加：
+需要 Umami 时，再添加：
 
 ```bash
--e NEXT_PUBLIC_UMAMI_SRC="https://cloud.umami.is/script.js" \
--e NEXT_PUBLIC_UMAMI_WEBSITE_ID="your_umami_website_id" \
+  -e NEXT_PUBLIC_UMAMI_SRC="https://cloud.umami.is/script.js" \
+  -e NEXT_PUBLIC_UMAMI_WEBSITE_ID="your_umami_website_id" \
 ```
 
 查看日志：
@@ -103,72 +152,89 @@ docker run -d \
 docker logs -f japanese-analyzer
 ```
 
-## 更新部署
+## 更新到最新版本
 
-使用 Docker Compose 时：
+<Tabs>
+  <Tab title="Docker Compose">
+    ```bash
+    cd ~/japanese-analyzer
+    docker compose pull
+    docker compose up -d
+    ```
+  </Tab>
+  <Tab title="docker run">
+    先拉取新镜像，删除旧容器，再用原来的参数重新运行：
 
-```bash
-docker compose -f docker-compose.hub.yml pull
-docker compose -f docker-compose.hub.yml up -d
-```
+    ```bash
+    docker pull howenhowen/japanese-analyzer:latest
+    docker rm -f japanese-analyzer
+    # 再次执行上面的 docker run 命令
+    ```
 
-直接运行容器时，先拉取新镜像，再重建容器：
-
-```bash
-docker pull howenhowen/japanese-analyzer:latest
-docker rm -f japanese-analyzer
-docker run -d \
-  --name japanese-analyzer \
-  --restart unless-stopped \
-  -p 3002:3002 \
-  -e DEEPSEEK_API_KEY="your_deepseek_api_key" \
-  -e GEMINI_API_KEY="your_gemini_api_key" \
-  -e CODE="" \
-  howenhowen/japanese-analyzer:latest
-```
-
-<Warning>
-  `docker rm -f japanese-analyzer` 会强制删除现有容器。确认容器名称和运行参数后再执行。API Key 应通过环境变量注入，不要写入镜像。
-</Warning>
+    <Warning>
+      `docker rm -f` 会强制删除容器。执行前确认容器名称，并记下原来的运行参数。
+    </Warning>
+  </Tab>
+  <Tab title="Vercel">
+    推送到仓库的默认分支后，Vercel 会自动重新部署。如果你部署的是 Fork，先同步上游更新。
+  </Tab>
+</Tabs>
 
 ## 配置域名与 HTTPS
 
-容器运行正常后，你可以为它添加反向代理：
+容器正常运行后，你可以为它添加域名和 HTTPS：
 
-1. 将域名 A 记录指向 VPS。
-2. 确认防火墙和云安全组已开放 `80` 与 `443` 端口。
-3. 检查服务器上是否已有 Nginx 或 Caddy，并优先复用现有服务。
-4. 将请求反向代理到 `127.0.0.1:3002`。
-5. 配置 HTTPS，并把 HTTP 重定向到 HTTPS。
-6. 使用 `curl -I https://你的域名` 检查证书和反向代理。
+<Steps>
+  <Step title="解析域名">
+    把域名的 A 记录指向服务器公网 IP。在云厂商安全组和系统防火墙中放行 `80` 和 `443` 端口。
+  </Step>
+  <Step title="检查现有 Web 服务器">
+    ```bash
+    command -v nginx caddy
+    ```
+
+    已有 Nginx 或 Caddy 时，直接复用，不要再安装一套。
+  </Step>
+  <Step title="配置反向代理">
+    <CodeGroup>
+      ```caddyfile Caddy
+      your.domain.com {
+          reverse_proxy 127.0.0.1:3002
+      }
+      ```
+
+      ```nginx Nginx
+      server {
+          listen 80;
+          server_name your.domain.com;
+
+          location / {
+              proxy_pass http://127.0.0.1:3002;
+              proxy_http_version 1.1;
+              proxy_set_header Host $host;
+              proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+              proxy_set_header X-Forwarded-Proto $scheme;
+              proxy_buffering off;
+          }
+      }
+      ```
+    </CodeGroup>
+
+    Caddy 会自动申请和续期 Let's Encrypt 证书。使用 Nginx 时，用 certbot 申请证书，并把 HTTP 重定向到 HTTPS。
+  </Step>
+  <Step title="验证">
+    ```bash
+    curl -I https://your.domain.com
+    ```
+
+    返回正常状态码且证书有效，即配置完成。
+  </Step>
+</Steps>
 
 <Tip>
-  如果服务器没有反向代理，Caddy 可以自动申请和续期 Let's Encrypt 证书。
+  在 Nginx 中设置 `proxy_buffering off`，可以避免流式输出被缓冲后一次性返回。
 </Tip>
 
-## 验收部署
+## 部署自己的修改版
 
-- 容器状态正常，日志中没有启动错误。
-- `curl http://127.0.0.1:3002` 能返回页面。
-- 服务器重启后，容器会自动启动。
-- 如果配置了域名，HTTPS 访问正常且证书有效。
-
-<Accordion title="交给 AI Agent 部署">
-  你可以把下面的提示词交给 Claude Code 或 Codex，并在执行时提供 API Key：
-
-  ```text
-  请在这台 VPS 上使用 Docker Compose 部署 japanese-analyzer。
-
-  - 镜像：howenhowen/japanese-analyzer:latest
-  - 容器与宿主机端口：3002
-  - 重启策略：unless-stopped
-  - DEEPSEEK_API_KEY：必填
-  - GEMINI_API_KEY：可选
-  - CODE：可选
-
-  请先检查 3002 端口是否可用。不要终止现有进程。
-  API Key 只通过环境变量注入，不要输出到日志或写入镜像。
-  容器启动后，请检查日志，并用 curl 验证本机访问。
-  如需配置域名和 HTTPS，请先询问我，并优先复用现有的 Nginx 或 Caddy。
-  ```
-</Accordion>
+项目采用 AGPL-3.0-only 许可证。如果你修改了代码并通过网络向他人提供服务，需要向用户提供修改版的对应源码，并把界面中的 GitHub 源码链接指向你的实际版本。详见[许可证](/license)。

@@ -1,54 +1,95 @@
 ---
 title: "日本語文章解析"
-description: "输入日语句子，查看分词、读音、词性、翻译和上下文解释。"
+description: "日语句子，逐词读懂。输入或粘贴日语，查看分词、注音、词性、词义和整句翻译。"
 icon: "language"
 ---
 
-日本語文章解析是一款面向中文学习者的日语句子解析工具。你可以输入文本或上传图片，快速查看词汇拆解、假名、罗马音、词性、整句翻译和单词详解。
+日本語文章解析是一款 AI 驱动的日语句子解析 Web 应用。你输入或粘贴一段日语，它会逐词标出假名、罗马音和词性，并在下方给出整句译文。点击任意一个词，你可以查看它在本句中的意思、用法、活用和例句。
 
 <Info>
-  想先体验功能？打开[在线演示](https://nihongodemo.howen.ink/)，无需部署即可开始解析。
+  想先体验？打开[在线演示](https://nihongodemo.howen.ink/)，无需部署即可开始解析。
 </Info>
 
-![日本語文章解析主界面](https://raw.githubusercontent.com/cokice/japanese-analyzer/master/docs/images/app-home.png)
+![解析结果与词典释义](https://raw.githubusercontent.com/cokice/japanese-analyzer/master/docs/images/app-home.png)
 
-## 你可以做什么
+## 功能一览
 
-| 功能 | 说明 |
-| --- | --- |
-| 句子解析 | 查看分词、假名、罗马音、词性标记和中文释义。 |
-| 单词详解 | 点击词汇，查看读音、释义、语法角色和上下文解释。 |
-| 整句翻译 | 生成中文翻译，快速理解句子语境。 |
-| 图片识别 | 上传或粘贴图片，从图片中提取日语文本。此功能需要 Gemini。 |
-| 语音朗读 | 使用 Edge TTS 或 Gemini TTS 朗读句子。 |
-| AI 日语助手 | 围绕当前句子继续询问语法、词汇和文化背景。 |
+### 读句子
 
-## 模型与服务
+<CardGroup cols={3}>
+  <Card title="句子解析" icon="spell-check" href="/features/analysis">
+    逐词标注假名、罗马音和词性，自动生成整句译文。
+  </Card>
+  <Card title="单词详解" icon="book-open" href="/features/word-detail">
+    点一个词，查看本句中的释义、原形、活用和例句。
+  </Card>
+  <Card title="多词圈选" icon="highlighter" href="/features/word-detail#多词圈选">
+    把语法结构、惯用语当作整体讲解，被拆开的词可以一键合并。
+  </Card>
+</CardGroup>
 
-| 能力 | 默认模型或服务 | 说明 |
+### 更顺手
+
+<CardGroup cols={2}>
+  <Card title="今日一句与最近记录" icon="calendar-days" href="/features/daily-sentence">
+    首页每天一句，按日本时间更新。最近的解析记录保存在浏览器本地。
+  </Card>
+  <Card title="图片识别" icon="image" href="/features/image-recognition">
+    上传或直接粘贴截图，提取其中的日语文字。
+  </Card>
+  <Card title="朗读原文" icon="volume-high" href="/features/text-to-speech">
+    使用 Edge TTS 或 Gemini TTS 朗读，可调语速和声音。
+  </Card>
+  <Card title="AI 日语助手" icon="comments" href="/features/ai-assistant">
+    结合当前句子，继续追问语法、词汇和学习问题。
+  </Card>
+</CardGroup>
+
+### 界面
+
+- 支持简体中文、繁體中文、English 和 한국어。界面、翻译和释义一起切换。
+- 支持浅色、深色和跟随系统三种主题。桌面与手机都能使用。
+- 长文自动分段解析。粘贴网页或 Markdown 时，自动去掉格式和链接。
+
+<Columns cols={2}>
+  <Frame caption="深色模式">
+    <img src="https://raw.githubusercontent.com/cokice/japanese-analyzer/master/docs/images/app-dark.png" alt="深色模式下的解析界面" />
+  </Frame>
+  <Frame caption="手机上的 AI 日语助手">
+    <img src="https://raw.githubusercontent.com/cokice/japanese-analyzer/master/docs/images/mobile-chat.png" alt="手机上的 AI 日语助手" />
+  </Frame>
+</Columns>
+
+## 模型
+
+| 用途 | 默认 | 可选 |
 | --- | --- | --- |
-| 文本解析 | `deepseek-v4-flash` / `deepseek-v4-pro` | 默认使用 DeepSeek。你可以在设置中切换 Flash 或 Pro。 |
-| Gemini 文本解析 | `gemini-3.6-flash` / `gemini-3.5-flash-lite` | 你可以在设置中切换 Gemini 模型。 |
-| 图片识别 | Gemini | DeepSeek 暂不支持图片识别。 |
-| 语音朗读 | Edge TTS / Gemini TTS | 默认使用 Edge TTS。Gemini TTS 需要 Gemini API Key。 |
+| 解析、翻译、释义、AI 助手 | DeepSeek `deepseek-flash` | Gemini `gemini-flash-latest` / `gemini-flash-lite-latest` |
+| 图片识别 | 与所选文本模型一致 | — |
+| 朗读 | Edge TTS | Gemini TTS（需要 Gemini API Key） |
 
-<Note>
-  你可以使用服务器预设的 API Key，也可以在右上角的设置中填写自己的 Key。浏览器设置只保存在本地。
-</Note>
+服务器配置的 API Key 供所有访客使用。使用者也可以在**设置**里填写自己的 Key。该 Key 保存在自己的浏览器中，请求时经应用服务端转发给模型服务商。详见[密钥与隐私](/privacy)。
+
+## 技术栈
+
+- Next.js 15（App Router）与 React 19
+- Tailwind CSS
+- 通过 OpenAI 兼容接口调用 DeepSeek 与 Gemini
+- 许可证：[AGPL-3.0-only](/license)
 
 ## 下一步
 
 <Columns cols={2}>
   <Card title="快速开始" icon="rocket" href="/quickstart">
-    在本地安装依赖并运行应用。
+    在本地安装依赖，几分钟内运行应用。
   </Card>
-  <Card title="配置模型" icon="sliders-horizontal" href="/configuration">
-    配置 DeepSeek、Gemini、访问密码和 Umami。
+  <Card title="部署" icon="server" href="/deployment">
+    部署到 Vercel，或用 Docker 运行在自己的服务器上。
   </Card>
-  <Card title="部署应用" icon="server" href="/deployment">
-    使用 Vercel、Docker Compose 或 Docker 运行应用。
+  <Card title="让 AI Agent 部署" icon="robot" href="/ai-deploy">
+    一句话交给 Claude Code、Codex 等 AI 编程助手完成部署。
   </Card>
-  <Card title="参与开发" icon="code" href="/development">
-    了解常用命令、项目结构和自动构建流程。
+  <Card title="配置" icon="sliders" href="/configuration">
+    了解每个环境变量、模型和访问密码。
   </Card>
 </Columns>

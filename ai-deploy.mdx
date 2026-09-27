@@ -1,0 +1,70 @@
+---
+title: "让 AI Agent 部署"
+description: "把一句话交给 Claude Code、Codex 或 Cursor，让 AI 编程助手帮你完成部署。"
+icon: "robot"
+---
+
+仓库提供了一份专门写给 AI 编程助手的部署指南 [`docs/agent-deploy.md`](https://github.com/cokice/japanese-analyzer/blob/master/docs/agent-deploy.md)。你只需要把下面这句话发给 Claude Code、Codex、Cursor 或 Gemini CLI：
+
+```text
+请阅读 https://raw.githubusercontent.com/cokice/japanese-analyzer/master/docs/agent-deploy.md ，按里面的步骤帮我部署 japanese-analyzer。
+```
+
+AI 助手会先问你要部署到哪里、要用哪些 Key，然后完成安装和验证，最后告诉你访问地址。
+
+## 部署流程
+
+<Steps>
+  <Step title="一次问清楚">
+    AI 助手会一次性问你以下问题：
+
+    1. **部署到哪里？**
+       - A. 当前这台 Linux 服务器，使用 Docker（推荐）
+       - B. Vercel
+       - C. 只在本机运行试用
+    2. **DeepSeek API Key**。没有的话，也可以只提供 Gemini Key。
+    3. **可选项**：Gemini API Key、访问密码 `CODE`、域名（仅 A 需要）。
+  </Step>
+
+  <Step title="执行部署">
+    - **Docker**：检查 Docker 和端口，下载 Compose 文件，写入 `.env.production` 并设置 `600` 权限，然后启动容器。提供了域名时，继续配置反向代理和 HTTPS。
+    - **Vercel**：由你本人登录 Vercel 授权，AI 助手指导你导入仓库和添加环境变量。
+    - **本机**：克隆仓库、安装依赖、构建并启动。
+  </Step>
+
+  <Step title="验收">
+    AI 助手会检查容器状态和日志，并用 `curl` 确认返回 `200`。
+  </Step>
+
+  <Step title="交付">
+    AI 助手会告诉你：
+
+    - 访问地址（IP 加端口，或域名）
+    - 如果设置了 `CODE`，首次访问需要输入密码
+    - 如果只配置了 Gemini Key，需要在**设置**中把服务商切换为 Gemini
+    - 更新和查看日志的命令
+  </Step>
+</Steps>
+
+## AI 助手遵守的规则
+
+指南要求 AI 助手遵守以下规则，保护你的服务器和密钥：
+
+<CardGroup cols={2}>
+  <Card title="保护密钥" icon="key">
+    API Key 只向你索取。不打印、不写入日志、不提交到 git。
+  </Card>
+  <Card title="先问再动" icon="hand">
+    删除容器或文件、占用或更换端口、安装系统软件、修改现有的 Nginx、Caddy 或防火墙配置前，先征得你的同意，并先备份配置。
+  </Card>
+  <Card title="不杀进程" icon="ban">
+    端口被占用时，告诉你是哪个进程在用，由你决定换端口还是自行处理。
+  </Card>
+  <Card title="失败就停" icon="circle-stop">
+    某一步失败时，给出关键报错和判断，不反复盲目重试。
+  </Card>
+</CardGroup>
+
+<Tip>
+  你也可以按照[部署](/deployment)页面的步骤手动完成同样的流程。
+</Tip>

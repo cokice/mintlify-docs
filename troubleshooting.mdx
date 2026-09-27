@@ -1,0 +1,85 @@
+---
+title: "常见问题"
+description: "解决部署、密钥、解析、朗读和今日一句的常见问题。"
+icon: "circle-question"
+---
+
+## 部署与访问
+
+<AccordionGroup>
+  <Accordion title="页面能打开，但解析时提示「未提供 API 密钥」">
+    服务器没有有效的 `DEEPSEEK_API_KEY` 或 `GEMINI_API_KEY`，浏览器设置中也没有填写 Key。
+
+    - Docker：修改 `.env.production` 后，运行 `docker compose up -d` 重建容器。
+    - Vercel：在 **Settings** → **Environment Variables** 中添加变量后，重新部署。
+    - 本地开发：修改 `.env.local` 后，重启 `npm run dev`。
+  </Accordion>
+
+  <Accordion title="只配置了 Gemini Key，解析仍然失败">
+    应用默认使用 DeepSeek。打开**设置**，把**模型服务**切换为 **Gemini**，然后点击**保存设置**。
+  </Accordion>
+
+  <Accordion title="服务器本机 curl 正常，外网打不开">
+    云厂商安全组或系统防火墙没有放行对应端口。放行 `3002`，或配置反向代理后放行 `80` 和 `443`。
+  </Accordion>
+
+  <Accordion title="HTTPS 证书申请失败">
+    域名尚未解析到服务器，或 `80` 端口没有放行。确认 A 记录已生效后重试。
+  </Accordion>
+
+  <Accordion title="设置了访问密码，但每次都要重新输入">
+    生产环境中会话 Cookie 带有 `Secure` 标记，只能通过 HTTPS 保存。请为站点配置 HTTPS。修改 `CODE` 后，所有旧会话也会失效。
+  </Accordion>
+</AccordionGroup>
+
+## 解析与翻译
+
+<AccordionGroup>
+  <Accordion title="流式输出经常中断">
+    在**设置**中关闭**流式输出**，改为一次性返回完整结果。如果你使用 Nginx 反向代理，还要确认已设置 `proxy_buffering off`。
+  </Accordion>
+
+  <Accordion title="提示「解析结果未能完整还原原文」">
+    模型返回的词项拼接后与原文不一致。重新解析一次，或切换到另一个模型版本。
+  </Accordion>
+
+  <Accordion title="提示被上游模型截断（finish_reason: length）">
+    输出超过了模型的长度上限。缩短原文，或分几次解析。
+  </Accordion>
+
+  <Accordion title="提示「上游接口请求超时」">
+    上游 60 秒内没有响应，或流式输出超过 90 秒没有新内容。检查服务器到模型服务商的网络，稍后重试。
+  </Accordion>
+
+  <Accordion title="分词不准确，一个词被拆成了几段">
+    圈选这几个词，如果应用判断它们是一个词，点击**合并为一个词**。详见[单词详解与多词圈选](/features/word-detail#合并被拆开的词)。
+  </Accordion>
+</AccordionGroup>
+
+## 其他功能
+
+<AccordionGroup>
+  <Accordion title="首页的今日一句只在几句固定句子中轮换">
+    服务器没有可用的 API Key，或出站网络无法访问模型服务商，应用改用了 7 句内置备用句。今日一句只使用服务器 Key，不使用浏览器中填写的 Key。
+  </Accordion>
+
+  <Accordion title="Gemini TTS 无法朗读">
+    Gemini TTS 需要 Gemini API Key。在服务器配置 `GEMINI_API_KEY`，或在**设置**中填写 Gemini Key。也可以切换回无需 Key 的 Edge TTS。
+  </Accordion>
+
+  <Accordion title="最近记录刷新后消失">
+    浏览器禁用了本地存储，或处于无痕模式。换用普通窗口，或允许网站保存数据。
+  </Accordion>
+</AccordionGroup>
+
+## 反馈问题
+
+如果以上内容没有解决你的问题，请在 GitHub 提交 [Issue](https://github.com/cokice/japanese-analyzer/issues)。报告解析问题时，请附上：
+
+- 模型服务商和模型版本
+- 界面语言
+- 能复现问题的原文
+
+<Warning>
+  不要在 Issue 中粘贴 API Key 或访问密码。
+</Warning>

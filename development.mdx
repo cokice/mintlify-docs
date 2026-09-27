@@ -1,84 +1,127 @@
 ---
 title: "开发指南"
-description: "了解开发命令、项目结构、持续集成和 Docker 镜像发布规则。"
+description: "了解开发命令、项目结构、测试、持续集成和 Docker 镜像发布规则。"
 icon: "code"
 ---
 
-项目基于 Next.js 和 React。开始开发前，请先按照[快速开始](/quickstart)完成本地配置。
+项目基于 Next.js 15（App Router）、React 19 和 Tailwind CSS，使用 TypeScript 编写。开始开发前，请先按照[快速开始](/quickstart)完成本地配置。
 
 ## 常用命令
 
 ```bash
-npm run dev      # 启动本地开发服务器
-npm test         # 运行 API 和 provider 配置测试
-npm run lint     # 检查代码质量
-npm run build    # 创建生产构建
+npm run dev          # 启动开发服务器（Turbopack）
+npm test             # 运行单元与接口测试
+npm run lint         # 代码检查
+npx tsc --noEmit     # 类型检查
+npm run build        # 生产构建
+npm start            # 运行生产构建
 ```
 
-发布改动前，建议依次运行测试、代码检查和生产构建。
+提交改动前，建议依次运行测试、代码检查、类型检查和生产构建。
+
+### 测试
+
+`npm test` 运行 `tests/api.test.ts` 和 `tests/i18n.test.ts`。`api.test.ts` 会导入其余测试文件，因此一条命令即可运行全部测试。调试时，也可以用 `tsx` 单独运行某个文件：
+
+```bash
+npx tsx tests/pastedText.test.ts
+```
+
+| 测试文件 | 覆盖内容 |
+| --- | --- |
+| `api.test.ts` | API 路由、服务商配置和请求校验，并导入其他测试 |
+| `i18n.test.ts` | 文案完整性（每个键都有三种翻译，占位符一致）、错误信息本地化和各语言的回答要求 |
+| `analysisHistory.test.ts` | 最近记录的去重、排序和数量上限 |
+| `analysisUrls.test.ts` | 解析时链接的保护与还原 |
+| `dailySentence.test.ts` | 今日一句的生成与校验 |
+| `localOutput.test.ts` | 罗马音转换、流式输出解析和模型响应解析 |
+| `pastedText.test.ts` | 粘贴网页和 Markdown 时的格式清理 |
+| `phraseRange.test.ts` | 多词圈选与合并 |
+| `readingLayout.test.ts` | 注音排版中词与标点的分组 |
+| `requestMetrics.test.ts` | Umami 请求指标与错误分类 |
+| `wordDetailContext.test.ts` | 长文中单词详解的上下文截取 |
+| `wordDetailDictionary.test.ts` | 单词详解结构化结果的解析 |
 
 ## 项目结构
 
 ```text
 app/
-  api/                 # Next.js API routes
-  api/_utils/          # provider 配置与 OpenAI 兼容代理
-  components/          # 输入区、解析结果、设置弹窗和 AI 助手
-  hooks/               # 单词详情和交互逻辑
-  services/            # 前端 API 调用与本地设置迁移
-docs/images/           # README 截图
-tests/                 # 轻量测试
+  api/                # Next.js API 路由（解析、翻译、释义、图片识别、朗读、聊天等）
+  api/_utils/         # 服务商配置、OpenAI 兼容代理、会话验证、超时和今日一句生成
+  components/         # 输入区、解析结果、单词详情、译文、AI 助手、设置弹窗等
+  contexts/           # 界面语言与主题
+  hooks/              # 单词详情、多词圈选和最近记录
+  i18n/               # 界面语言与文案（以简体中文原文为键）
+  lib/                # 模型列表与各功能的提示词
+  services/api.ts     # 前端 API 调用、流式解析和长文分段
+  utils/              # 分段、罗马音、粘贴清理、统计等工具函数
+components/ui/        # 通用 UI 组件
+docs/                 # 截图和 AI Agent 部署指南
+tests/                # 测试
 ```
 
-## GitHub Actions
+### 添加界面文案
 
-仓库中的 `.github/workflows/docker.yml` 会在 push 或 pull request 时执行：
+文案定义在 `app/i18n/messages.ts` 中。简体中文原文就是键，其他三种语言作为值：
 
-1. `npm ci`
-2. `npm test`
-3. `npm run lint`
-4. `npm run build`
-5. Docker image build
+```ts app/i18n/messages.ts
+"历史记录": {"zh-TW": "歷史紀錄", "en": "History", "ko": "기록"},
+```
 
-推送到 `howendev/dev`、默认分支或 `v*` tag 时，工作流会在配置 Docker Hub secrets 后构建并推送多架构镜像。
+在组件中通过 `t("历史记录")` 使用。新增文案时，请同时提供 `zh-TW`、`en` 和 `ko` 三种翻译，`i18n.test.ts` 会检查完整性。
+
+## 持续集成
+
+`.github/workflows/docker.yml` 在推送到任意分支、推送 `v*` 标签、提交 Pull Request 或手动触发时运行：
+
+<Steps>
+  <Step title="验证">
+    使用 Node.js 22 依次运行 `npm ci`、`npm test`、`npm run lint` 和 `npm run build`。
+  </Step>
+  <Step title="构建镜像">
+    验证通过后构建 Docker 镜像。普通分支和 Pull Request 只构建 `linux/amd64`，用于检查镜像能否构建成功。
+  </Step>
+  <Step title="发布镜像">
+    推送到默认分支、`howendev/dev` 分支或任意标签时，同时构建 `linux/amd64` 和 `linux/arm64`，并在配置了 Docker Hub secrets 时推送多架构镜像。
+  </Step>
+</Steps>
 
 | 架构 | 构建环境 |
 | --- | --- |
 | `linux/amd64` | `ubuntu-latest` |
 | `linux/arm64` | `ubuntu-24.04-arm` |
 
-## 镜像标签
+### 镜像标签
 
-分支发布会生成：
+| 触发方式 | 生成的标签 |
+| --- | --- |
+| 推送到默认分支 | `latest`、`<分支名>`、`sha-<短提交号>` |
+| 推送到 `howendev/dev` | `latest`、`howendev-dev`、`sha-<短提交号>` |
+| 推送标签 | `<标签名>`、`sha-<短提交号>` |
 
-```text
-howenhowen/japanese-analyzer:latest
-howenhowen/japanese-analyzer:<branch>
-howenhowen/japanese-analyzer:sha-<commit>
-```
-
-版本 tag 发布会生成：
-
-```text
-howenhowen/japanese-analyzer:<tag>
-howenhowen/japanese-analyzer:sha-<commit>
-```
-
-## Docker Hub secrets
+### Docker Hub secrets
 
 在 GitHub 仓库中打开 **Settings** → **Secrets and variables** → **Actions**，添加：
 
 | Secret | 说明 |
 | --- | --- |
-| `DOCKERHUB_USERNAME` | Docker Hub 用户名，例如 `howenhowen`。 |
+| `DOCKERHUB_USERNAME` | Docker Hub 用户名。 |
 | `DOCKERHUB_TOKEN` | Docker Hub Personal Access Token。不要使用账号密码。 |
 
+未配置这两个 secrets 时，工作流只构建镜像，不推送，并输出一条警告。
+
 <Warning>
-  运行时密钥不要写入 Docker 镜像。VPS 应继续通过 `.env.production` 注入 `DEEPSEEK_API_KEY`、`GEMINI_API_KEY`、`CODE` 和 Umami 配置。
+  运行时密钥不要写入 Docker 镜像。`DEEPSEEK_API_KEY`、`GEMINI_API_KEY`、`CODE` 和 Umami 配置应在运行容器时通过 `.env.production` 或 `-e` 参数注入。
 </Warning>
 
-## 相关链接
+## Docker 镜像
 
-- [GitHub 仓库](https://github.com/cokice/japanese-analyzer)
-- [在线演示](https://nihongodemo.howen.ink/)
-- [MIT License](https://github.com/cokice/japanese-analyzer/blob/master/LICENSE)
+`Dockerfile` 基于 `node:22-alpine` 多阶段构建，使用 Next.js standalone 输出：
+
+- 运行阶段以非 root 用户 `nextjs` 运行。
+- 默认监听 `0.0.0.0:3002`。
+- 镜像包含 `LICENSE`、`NOTICE`、`LICENSING.md` 和 `LICENSES/` 许可证文件。
+
+## 贡献
+
+欢迎提交 [Issue](https://github.com/cokice/japanese-analyzer/issues) 和 Pull Request。新增贡献请使用与 AGPL-3.0-only 兼容的许可，并保留引入的第三方代码声明。详见[许可证](/license)。
